@@ -1,5 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 
+import { mapEnergySampleRow } from '@/features/energy/mappers'
 import type { EnergyDashboardData } from '@/features/energy/types'
 import { getEnergySamples } from '@/server/db/energy-repository'
 import {
@@ -13,29 +14,19 @@ export const getEnergyDashboard = createServerFn({ method: 'GET' }).handler(
   async (): Promise<EnergyDashboardData> => {
     try {
       const stationId = getStationId()
-      const summary = await getSyncSummary()
+      let syncStatus = await getSyncSummary()
 
-      if (summary.sampleCount === 0) {
+      if (syncStatus.sampleCount === 0) {
         await syncSolarmanMinute({ backfillDays: 1 })
+        syncStatus = await getSyncSummary()
       }
 
       const to = new Date()
       const from = new Date(to.getTime() - 24 * 60 * 60 * 1000)
-
-      const [rows, syncStatus] = await Promise.all([
-        getEnergySamples({ stationId, from, to }),
-        getSyncSummary(),
-      ])
+      const rows = await getEnergySamples({ stationId, from, to })
 
       return {
-        samples: rows.map((row) => ({
-          recordedAt: row.recorded_at.toISOString(),
-          produzioneW: row.produzione_w === null ? null : Number(row.produzione_w),
-          consumoW: row.consumo_w === null ? null : Number(row.consumo_w),
-          batterySoc: row.battery_soc === null ? null : Number(row.battery_soc),
-          batteryPowerW:
-            row.battery_power_w === null ? null : Number(row.battery_power_w),
-        })),
+        samples: rows.map(mapEnergySampleRow),
         syncStatus,
       }
     } catch (error) {

@@ -17,13 +17,13 @@ import {
 
 const JOB_NAME = 'solarman-minute-sync'
 
-export type SyncResult = {
+type SyncResult = {
   inserted: number
   mode: 'live' | 'mock'
   message: string
 }
 
-export function hasSolarmanCredentials() {
+function hasSolarmanCredentials() {
   return Boolean(
     env.SOLARMAN_APP_ID &&
       env.SOLARMAN_APP_SECRET &&
@@ -44,7 +44,7 @@ export function getStationId() {
   return 1
 }
 
-export function createSolarmanClient(stationId?: number) {
+function createSolarmanClient(stationId?: number) {
   if (!hasSolarmanCredentials()) {
     throw new Error('Credenziali Solarman mancanti')
   }
@@ -65,7 +65,7 @@ export async function syncSolarmanMinute(options?: {
   backfillDays?: number
   startOffset?: number
   includeRealtime?: boolean
-}) {
+}): Promise<SyncResult> {
   const stationId = getStationId()
   const now = new Date()
 

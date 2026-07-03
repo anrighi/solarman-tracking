@@ -1,0 +1,50 @@
+---
+description: Regole manutenzione agent-first per Solar Tracking
+alwaysApply: true
+---
+
+# Solar Tracking — Manutenzione agent-first
+
+## Prima di ogni sessione
+1. Leggere `docs/FEATURES.md` → sezione **Fase attiva**
+2. Leggere `AGENTS.md` per convenzioni e comandi
+3. Verificare `.env` (locale) o `.env.docker` (container) da `.env.example`
+4. Eseguire `pnpm run test` prima di modifiche invasive
+
+## Durante il lavoro
+- Lavorare **solo** sulla fase/feature indicata in `FEATURES.md`
+- Usare import assoluti (`@/...`), TypeScript strict, testi UI in italiano
+- Struttura feature-based: `src/features/<nome>/`
+- Early return, pochi commenti, diff minimi
+- Mock per test esterni (Solarman, Telegram, LLM, meteo)
+- Non esporre l'app in rete: bind su `127.0.0.1` only
+
+## A fine sessione
+1. Aggiornare stato feature e checkbox in `docs/FEATURES.md`
+2. Aggiungere riga al **Handoff log** con prossimo passo concreto
+3. Eseguire `pnpm run test` e `pnpm run build` se toccato codice applicativo
+
+## Env e segreti
+- `.env.example` — template committato
+- `.env.local.example` — template dev locale (host → MySQL su 127.0.0.1)
+- `.env.docker` — variabili per Docker Compose (host → `mysql`)
+- `.env` / `.env.local` — **mai committare**, contengono credenziali reali
+
+## Fasi (non saltare)
+| Fase | Scope |
+|------|-------|
+| 0 | Bootstrap, Docker, env, tracking, test base |
+| 1 | Sync Solarman → MySQL |
+| 2 | Dashboard + aggregati |
+| 3 | Telegram + AI classificazione |
+| 4 | Meteo + forecast |
+
+## Comandi
+```bash
+docker compose up -d          # stack base (app, worker, mysql)
+docker compose --profile full up -d  # + llm, telegram-bot
+pnpm run dev                  # dev locale (fuori Docker)
+pnpm run test
+pnpm run sync:once
+pnpm run sync:worker
+```
