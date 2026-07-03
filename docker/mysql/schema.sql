@@ -2,10 +2,15 @@ CREATE TABLE IF NOT EXISTS energy_samples_minute (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   station_id INT NOT NULL,
   recorded_at DATETIME(3) NOT NULL,
-  produzione_w DECIMAL(12, 2) NULL,
-  consumo_w DECIMAL(12, 2) NULL,
+  production_w DECIMAL(12, 2) NULL,
+  consumption_w DECIMAL(12, 2) NULL,
   battery_soc DECIMAL(5, 2) NULL,
   battery_power_w DECIMAL(12, 2) NULL,
+  grid_import_w DECIMAL(12, 2) NULL,
+  grid_export_w DECIMAL(12, 2) NULL,
+  battery_charge_w DECIMAL(12, 2) NULL,
+  battery_discharge_w DECIMAL(12, 2) NULL,
+  irradiance DECIMAL(12, 2) NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uk_station_recorded (station_id, recorded_at),
   KEY idx_recorded_at (recorded_at)
@@ -30,4 +35,39 @@ CREATE TABLE IF NOT EXISTS sync_state (
   last_error TEXT NULL,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uk_job_name (job_name)
+);
+
+CREATE TABLE IF NOT EXISTS app_config (
+  id INT PRIMARY KEY DEFAULT 1,
+  config JSON NOT NULL,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT chk_single_config CHECK (id = 1)
+);
+
+CREATE TABLE IF NOT EXISTS backfill_checkpoint (
+  station_id INT PRIMARY KEY,
+  first_data_at DATETIME(3) NULL,
+  last_synced_at DATETIME(3) NULL,
+  no_data_before DATETIME(3) NULL,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS backfill_gap (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  station_id INT NOT NULL,
+  gap_start DATETIME(3) NOT NULL,
+  gap_end DATETIME(3) NOT NULL,
+  status ENUM('open', 'filled', 'ignored') NOT NULL DEFAULT 'open',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_gap_station_status (station_id, status)
+);
+
+CREATE TABLE IF NOT EXISTS telegram_messages (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  alert_type VARCHAR(64) NOT NULL,
+  station_id INT NOT NULL,
+  message_text TEXT NOT NULL,
+  sent_at DATETIME(3) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_telegram_alert_sent (alert_type, station_id, sent_at)
 );

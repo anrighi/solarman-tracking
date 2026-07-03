@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto'
 
+import { normalizeStationPowerFields } from '@/lib/solarman/normalize'
 import type {
   SolarmanClientConfig,
   SolarmanHistoryItem,
@@ -132,13 +133,16 @@ export function mapRealtimeToSample(input: {
     return null
   }
 
+  const stationFields = normalizeStationPowerFields(input.payload)
+
   return {
     stationId: input.stationId,
     recordedAt,
-    produzioneW: input.payload.generationPower ?? null,
-    consumoW: input.payload.usePower ?? null,
+    productionW: input.payload.generationPower ?? null,
+    consumptionW: input.payload.usePower ?? null,
     batterySoc: input.payload.batterySoc ?? null,
     batteryPowerW: input.payload.batteryPower ?? null,
+    ...stationFields,
   }
 }
 
@@ -154,13 +158,16 @@ export function mapHistoryItemsToSamples(input: {
         return null
       }
 
+      const stationFields = normalizeStationPowerFields(item)
+
       return {
         stationId: input.stationId,
         recordedAt,
-        produzioneW: item.generationPower ?? null,
-        consumoW: item.usePower ?? null,
+        productionW: item.generationPower ?? null,
+        consumptionW: item.usePower ?? null,
         batterySoc: item.batterySoc ?? null,
         batteryPowerW: item.batteryPower ?? null,
+        ...stationFields,
       }
     })
     .filter((sample): sample is EnergySampleInsert => sample !== null)

@@ -1,21 +1,35 @@
 import { useState } from 'react'
-import { useRouter } from '@tanstack/react-router'
-import { RefreshCw } from 'lucide-react'
+import { Link, useRouter } from '@tanstack/react-router'
+import { RefreshCw, Settings } from 'lucide-react'
 
+import { AppLogo } from '@/components/app-logo'
 import { EnergyChart } from '@/features/energy/components/energy-chart'
+import {
+  type DashboardSearch,
+  TimeRangeNav,
+} from '@/features/energy/components/time-range-nav'
 import { runEnergySync } from '@/features/energy/server/get-energy-dashboard'
 import type { EnergyDashboardData } from '@/features/energy/types'
 
 type EnergyDashboardProps = {
   data: EnergyDashboardData
+  days: number
+  endDate?: string
+  onRangeChange: (search: DashboardSearch) => void
 }
 
-export function EnergyDashboard({ data }: EnergyDashboardProps) {
+export function EnergyDashboard({
+  data,
+  days,
+  endDate,
+  onRangeChange,
+}: EnergyDashboardProps) {
   const router = useRouter()
   const [isSyncing, setIsSyncing] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
 
-  const latest = data.samples.at(-1)
+  const stats = data.batteryStats
+  const totals = data.energyTotals
 
   async function handleSync() {
     setIsSyncing(true)
@@ -37,48 +51,91 @@ export function EnergyDashboard({ data }: EnergyDashboardProps) {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">Solar Tracking</h1>
-          <p className="mt-1 text-slate-600">
-            Produzione, consumo e stato batteria — ultime 24 ore
-          </p>
+        <div className="flex items-center gap-3">
+          <AppLogo />
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Solar Tracking</h1>
+          </div>
         </div>
 
-        <button
-          type="button"
-          onClick={handleSync}
-          disabled={isSyncing}
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-amber-500 px-4 py-2 font-medium text-white transition hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-          {isSyncing ? 'Sincronizzazione...' : 'Sincronizza ora'}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            to="/settings"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            <Settings className="h-4 w-4" />
+            Impostazioni
+          </Link>
+          <button
+            type="button"
+            onClick={handleSync}
+            disabled={isSyncing}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-amber-500 px-4 py-2 font-medium text-white transition hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? 'Sincronizzazione...' : 'Sincronizza ora'}
+          </button>
+        </div>
       </header>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <TimeRangeNav days={days} endDate={endDate} onChange={onRangeChange} />
+
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <MetricCard
-          label="Produzione attuale"
-          value={formatPower(latest?.produzioneW)}
+          label="Produzione totale"
+          value={formatEnergy(totals.producedWh)}
           accent="text-amber-600"
         />
         <MetricCard
-          label="Consumo attuale"
-          value={formatPower(latest?.consumoW)}
+          label="Consumo totale"
+          value={formatEnergy(totals.consumedWh)}
           accent="text-blue-600"
         />
         <MetricCard
-          label="Batteria"
-          value={formatSoc(latest?.batterySoc)}
-          accent="text-emerald-600"
+          label="Prelievo dalla rete"
+          value={formatEnergy(totals.importedWh)}
+          accent="text-red-600"
         />
         <MetricCard
-          label="Campioni in DB"
-          value={String(data.syncStatus.sampleCount)}
-          accent="text-slate-700"
+          label="Immissione in rete"
+          value={formatEnergy(totals.exportedWh)}
+          accent="text-teal-600"
+        />
+        <MetricCard
+          label="Autoconsumo"
+          value={formatEnergy(totals.selfConsumedWh)}
+          accent="text-emerald-600"
         />
       </section>
 
-      <EnergyChart samples={data.samples} />
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <MetricCard
+          label="SOC min / max"
+          value={`${formatSoc(stats.socMin)} / ${formatSoc(stats.socMax)}`}
+          accent="text-emerald-700"
+        />
+        <MetricCard
+          label="SOC medio"
+          value={formatSoc(stats.socAvg)}
+          accent="text-emerald-700"
+        />
+        <MetricCard
+          label="Energia caricata"
+          value={formatEnergy(stats.energyChargedWh)}
+          accent="text-green-600"
+        />
+        <MetricCard
+          label="Energia scaricata"
+          value={formatEnergy(stats.energyDischargedWh)}
+          accent="text-orange-600"
+        />
+      </section>
+
+      <EnergyChart
+        samples={data.samples}
+        defaultVisibleSeries={data.config.chart.visibleSeries}
+        defaultSmooth={data.config.chart.smooth}
+      />
 
       <footer className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
         <p>
@@ -125,24 +182,20 @@ function StatusBadge({ status }: { status: string }) {
   return <span className={styles[status] ?? 'text-slate-600'}>{status}</span>
 }
 
-function formatPower(value: number | null | undefined) {
-  if (value === null || value === undefined) {
-    return '—'
-  }
-
-  if (value >= 1000) {
-    return `${(value / 1000).toFixed(1)} kW`
-  }
-
-  return `${Math.round(value)} W`
-}
-
 function formatSoc(value: number | null | undefined) {
   if (value === null || value === undefined) {
     return '—'
   }
 
   return `${value.toFixed(0)} %`
+}
+
+function formatEnergy(wh: number) {
+  if (wh >= 1000) {
+    return `${(wh / 1000).toFixed(1)} kWh`
+  }
+
+  return `${Math.round(wh)} Wh`
 }
 
 function formatDateTime(value: string) {

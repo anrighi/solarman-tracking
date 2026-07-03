@@ -1,24 +1,38 @@
 #!/usr/bin/env tsx
 
+import { getConfig } from '@/lib/config/service'
+import { runBatteryAlerts } from '@/features/alerts/run-battery-alerts'
+import { closePool } from '@/server/db/connection'
 import { syncSolarmanMinute } from '@/server/jobs/sync-solarman'
 
-const INTERVAL_MS = Number(process.env.SYNC_INTERVAL_MS ?? 60_000)
-
 async function runLoop() {
-  console.log(`[sync:worker] avvio loop ogni ${INTERVAL_MS}ms`)
+  console.log('[sync:worker] avvio loop')
 
   while (true) {
+    const config = await getConfig()
+    const intervalMs = config.sync.intervalMs
+
     try {
       const result = await syncSolarmanMinute({ backfillDays: 1 })
       console.log(
         `[sync:worker] ${new Date().toISOString()} ${result.message} (${result.inserted})`,
       )
+
+      const alertResult = await runBatteryAlerts()
+
+      if (alertResult.sent > 0) {
+        console.log(`[sync:worker] alert inviati: ${alertResult.sent}`)
+      }
+
+      if (alertResult.errors.length > 0) {
+        console.error(`[sync:worker] errori alert: ${alertResult.errors.join(', ')}`)
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       console.error(`[sync:worker] errore: ${message}`)
     }
 
-    await sleep(INTERVAL_MS)
+    await sleep(intervalMs)
   }
 }
 

@@ -11,6 +11,11 @@ import type {
 type SampleRowPacket = EnergySampleRow & RowDataPacket
 type SyncStatePacket = SyncStateRow & RowDataPacket
 
+const SAMPLE_COLUMNS = `
+  station_id, recorded_at, production_w, consumption_w, battery_soc, battery_power_w,
+  grid_import_w, grid_export_w, battery_charge_w, battery_discharge_w, irradiance
+` as const
+
 export async function upsertEnergySamples(samples: EnergySampleInsert[]) {
   if (samples.length === 0) {
     return 0
@@ -20,21 +25,30 @@ export async function upsertEnergySamples(samples: EnergySampleInsert[]) {
     const values = samples.map((sample) => [
       sample.stationId,
       sample.recordedAt,
-      sample.produzioneW,
-      sample.consumoW,
+      sample.productionW,
+      sample.consumptionW,
       sample.batterySoc,
       sample.batteryPowerW,
+      sample.gridImportW,
+      sample.gridExportW,
+      sample.batteryChargeW,
+      sample.batteryDischargeW,
+      sample.irradiance,
     ])
 
     const [result] = await connection.query<ResultSetHeader>(
-      `INSERT INTO energy_samples_minute
-        (station_id, recorded_at, produzione_w, consumo_w, battery_soc, battery_power_w)
+      `INSERT INTO energy_samples_minute (${SAMPLE_COLUMNS})
        VALUES ?
        ON DUPLICATE KEY UPDATE
-        produzione_w = VALUES(produzione_w),
-        consumo_w = VALUES(consumo_w),
+        production_w = VALUES(production_w),
+        consumption_w = VALUES(consumption_w),
         battery_soc = VALUES(battery_soc),
-        battery_power_w = VALUES(battery_power_w)`,
+        battery_power_w = VALUES(battery_power_w),
+        grid_import_w = VALUES(grid_import_w),
+        grid_export_w = VALUES(grid_export_w),
+        battery_charge_w = VALUES(battery_charge_w),
+        battery_discharge_w = VALUES(battery_discharge_w),
+        irradiance = VALUES(irradiance)`,
       [values],
     )
 
@@ -69,7 +83,7 @@ export async function getEnergySamples(input: {
 }) {
   return withConnection(async (connection) => {
     const [rows] = await connection.query<SampleRowPacket[]>(
-      `SELECT id, station_id, recorded_at, produzione_w, consumo_w, battery_soc, battery_power_w
+      `SELECT id, ${SAMPLE_COLUMNS}
        FROM energy_samples_minute
        WHERE station_id = ? AND recorded_at >= ? AND recorded_at <= ?
        ORDER BY recorded_at ASC`,

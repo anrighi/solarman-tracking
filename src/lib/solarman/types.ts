@@ -12,6 +12,12 @@ export type SolarmanRealtimeResponse = {
   usePower?: number | null
   batterySoc?: number | null
   batteryPower?: number | null
+  purchasePower?: number | null
+  gridPower?: number | null
+  wirePower?: number | null
+  chargePower?: number | null
+  dischargePower?: number | null
+  irradiateIntensity?: number | null
   lastUpdateTime?: number | null
   msg?: string | null
 }
@@ -22,6 +28,12 @@ export type SolarmanHistoryItem = {
   usePower?: number | null
   batterySoc?: number | null
   batteryPower?: number | null
+  purchasePower?: number | null
+  gridPower?: number | null
+  wirePower?: number | null
+  chargePower?: number | null
+  dischargePower?: number | null
+  irradiateIntensity?: number | null
   year?: number | null
   month?: number | null
   day?: number | null

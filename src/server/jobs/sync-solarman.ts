@@ -1,4 +1,5 @@
 import { env } from '@/lib/env'
+import { getConfig } from '@/lib/config/service'
 import {
   SolarmanClient,
   addDays,
@@ -96,7 +97,8 @@ export async function syncSolarmanMinute(options?: {
 
     const client = createSolarmanClient()
     let inserted = 0
-    const includeRealtime = options?.includeRealtime ?? true
+    const appConfig = await getConfig()
+    const includeRealtime = options?.includeRealtime ?? appConfig.sync.includeRealtime
 
     if (includeRealtime) {
       const realtime = await client.getRealtimeData()
@@ -206,16 +208,40 @@ async function seedMockSamples(stationId: number) {
 function buildMockSample(stationId: number, recordedAt: Date) {
   const hour = recordedAt.getUTCHours() + recordedAt.getUTCMinutes() / 60
   const daylight = Math.max(0, Math.sin(((hour - 6) / 12) * Math.PI))
-  const produzioneW = Math.round(daylight * 4200 + Math.random() * 200)
-  const consumoW = Math.round(900 + Math.random() * 600)
+  const productionW = Math.round(daylight * 4200 + Math.random() * 200)
+  const consumptionW = Math.round(900 + Math.random() * 600)
   const batterySoc = Math.round(35 + daylight * 45 + Math.random() * 5)
+  const surplus = productionW - consumptionW
+
+  let gridImportW = 0
+  let gridExportW = 0
+  let batteryChargeW = 0
+  let batteryDischargeW = 0
+
+  if (surplus > 0) {
+    batteryChargeW = Math.round(surplus * 0.6)
+    gridExportW = Math.max(0, surplus - batteryChargeW)
+  }
+
+  if (surplus < 0) {
+    const deficit = Math.abs(surplus)
+    batteryDischargeW = Math.round(deficit * 0.5)
+    gridImportW = Math.max(0, deficit - batteryDischargeW)
+  }
+
+  const batteryPowerW = batteryChargeW > 0 ? batteryChargeW : -batteryDischargeW
 
   return {
     stationId,
     recordedAt,
-    produzioneW,
-    consumoW,
+    productionW,
+    consumptionW,
     batterySoc,
-    batteryPowerW: produzioneW > consumoW ? produzioneW - consumoW : consumoW - produzioneW,
+    batteryPowerW,
+    gridImportW: gridImportW > 0 ? gridImportW : null,
+    gridExportW: gridExportW > 0 ? gridExportW : null,
+    batteryChargeW: batteryChargeW > 0 ? batteryChargeW : null,
+    batteryDischargeW: batteryDischargeW > 0 ? batteryDischargeW : null,
+    irradiance: daylight > 0 ? Math.round(daylight * 900 + Math.random() * 50) : null,
   }
 }

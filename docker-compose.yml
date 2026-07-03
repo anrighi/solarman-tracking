@@ -10,6 +10,8 @@ services:
       - /app/node_modules
     ports:
       - "127.0.0.1:3000:3000"
+    environment:
+      TZ: ${TZ:-Europe/Rome}
     env_file:
       - path: .env.docker
         required: false
@@ -29,6 +31,8 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+    environment:
+      TZ: ${TZ:-Europe/Rome}
     env_file:
       - path: .env.docker
         required: false
@@ -78,5 +82,30 @@ services:
     command: sh -c "echo 'Telegram bot placeholder for Phase 3' && sleep infinity"
     profiles: ["full"]
 
+  backup:
+    build:
+      context: .
+    image: solar-tracking-app:local
+    container_name: solar_tracking_backup
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - backup_data:/app/backups
+    env_file:
+      - path: .env.docker
+        required: false
+      - path: .env
+        required: false
+    environment:
+      RCLONE_REMOTE: ${RCLONE_REMOTE:-gdrive:solar-tracking/backups}
+      BACKUP_INTERVAL_SECONDS: ${BACKUP_INTERVAL_SECONDS:-86400}
+    command: sh scripts/backup-loop.sh
+    depends_on:
+      mysql:
+        condition: service_healthy
+    profiles: ["backup"]
+
 volumes:
   mysql_data:
+  backup_data:

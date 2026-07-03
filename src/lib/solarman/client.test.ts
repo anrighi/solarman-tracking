@@ -35,12 +35,38 @@ describe('mapRealtimeToSample', () => {
 
     expect(sample).toMatchObject({
       stationId: 42,
-      produzioneW: 1200,
-      consumoW: 800,
+      productionW: 1200,
+      consumptionW: 800,
       batterySoc: 55,
       batteryPowerW: 400,
     })
     expect(sample?.recordedAt).toBeInstanceOf(Date)
+  })
+
+  it('mappa i campi rete e batteria separati', () => {
+    const sample = mapRealtimeToSample({
+      stationId: 42,
+      payload: {
+        success: true,
+        generationPower: 678,
+        usePower: 678,
+        purchasePower: -678,
+        wirePower: -678,
+        chargePower: -678,
+        batterySoc: 56,
+        batteryPower: -678,
+        irradiateIntensity: 236.18,
+        lastUpdateTime: 1_700_000_000,
+      },
+    })
+
+    expect(sample).toMatchObject({
+      gridImportW: 678,
+      gridExportW: null,
+      batteryChargeW: 678,
+      batteryDischargeW: null,
+      irradiance: 236.18,
+    })
   })
 })
 
@@ -55,11 +81,15 @@ describe('mapHistoryItemsToSamples', () => {
           usePower: 300,
           batterySoc: 40,
           batteryPower: 200,
+          gridPower: 100,
+          dischargePower: 50,
         },
       ],
     })
 
-    expect(sample?.produzioneW).toBe(500)
+    expect(sample?.productionW).toBe(500)
+    expect(sample?.gridExportW).toBe(100)
+    expect(sample?.batteryDischargeW).toBe(50)
     expect(sample?.recordedAt.toISOString()).toBe('2024-06-01T10:15:00.000Z')
   })
 
