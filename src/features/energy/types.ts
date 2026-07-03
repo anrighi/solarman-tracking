@@ -1,6 +1,7 @@
 import type { SyncStatus } from '@/server/db/schema'
 import type { AppConfig } from '@/lib/config/schema'
 import type { BatteryStats, EnergyTotals } from '@/features/energy/battery-stats'
+import type { PeriodType } from '@/features/energy/time-range'
 
 export type EnergySample = {
   recordedAt: string
@@ -17,8 +18,9 @@ export type EnergySample = {
 
 export type EnergyDashboardData = {
   samples: EnergySample[]
-  days: number
-  endDate: string | null
+  period: PeriodType
+  anchor: string | null
+  firstDataDate: string | null
   periodFrom: string
   periodTo: string
   isLive: boolean

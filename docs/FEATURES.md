@@ -70,11 +70,11 @@
 
 | Date | Agent | Phase | Done | Next step | Blocker |
 |------|-------|-------|------|-----------|---------|
+| 2026-07-03 | Cursor | 2 | Dashboard period nav: day/week/month presets, anchor date, first-data boundary | F1 aggregates + live Solarman validation | None |
 | 2026-07-03 | Cursor | 0+1 | F8 backup policy, retention, `/settings/backup`, restore test, missing-backup alert | F1 aggregates + live Solarman validation | None |
 | 2026-07-03 | Cursor | docs | F13 CI spec: ESLint, Prettier, typecheck, Vitest, build in GitHub Actions | F1 aggregates + live Solarman validation | None |
 | 2026-07-03 | Cursor | 1+2 | F2 extended: station grid import/export, battery charge/discharge, English DB columns, dashboard KPIs | F1 aggregates + live Solarman validation | None |
 | 2026-07-03 | Cursor | docs | F12 customizable reports spec (builder UI, time frame, metric blocks) | F1 aggregates + live Solarman validation | None |
-| 2026-07-03 | Cursor | 1–3 | F7–F11: config panel, checkpoint backfill, battery dashboard, Telegram alerts, backup | F1 aggregates + live Solarman validation | None |
 
 ## Useful commands
 

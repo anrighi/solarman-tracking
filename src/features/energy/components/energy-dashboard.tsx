@@ -10,18 +10,19 @@ import {
 } from '@/features/energy/components/time-range-nav'
 import { runEnergySync } from '@/features/energy/server/get-energy-dashboard'
 import type { EnergyDashboardData } from '@/features/energy/types'
+import type { PeriodType } from '@/features/energy/time-range'
 
 type EnergyDashboardProps = {
   data: EnergyDashboardData
-  days: number
-  endDate?: string
+  period: PeriodType
+  anchor?: string
   onRangeChange: (search: DashboardSearch) => void
 }
 
 export function EnergyDashboard({
   data,
-  days,
-  endDate,
+  period,
+  anchor,
   onRangeChange,
 }: EnergyDashboardProps) {
   const router = useRouter()
@@ -78,7 +79,12 @@ export function EnergyDashboard({
         </div>
       </header>
 
-      <TimeRangeNav days={days} endDate={endDate} onChange={onRangeChange} />
+      <TimeRangeNav
+        period={period}
+        anchor={anchor}
+        minDate={data.firstDataDate}
+        onChange={onRangeChange}
+      />
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <MetricCard

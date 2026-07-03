@@ -2,39 +2,43 @@ import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
 
 import {
   canGoNext,
+  canGoPrev,
   formatPeriodLabel,
+  type PeriodType,
   RANGE_PRESETS,
   resolveTimeRange,
-  shiftEndDate,
+  shiftPeriod,
   todayDateOnly,
 } from '@/features/energy/time-range'
 
 export type DashboardSearch = {
-  days?: number
-  endDate?: string
+  period?: PeriodType
+  anchor?: string
 }
 
 type TimeRangeNavProps = {
-  days: number
-  endDate?: string
+  period: PeriodType
+  anchor?: string
+  minDate?: string | null
   onChange: (search: DashboardSearch) => void
 }
 
-export function TimeRangeNav({ days, endDate, onChange }: TimeRangeNavProps) {
-  const range = resolveTimeRange({ days, endDate })
-  const allowNext = canGoNext(endDate, days)
+export function TimeRangeNav({ period, anchor, minDate, onChange }: TimeRangeNavProps) {
+  const range = resolveTimeRange({ period, anchor })
+  const min = minDate ?? undefined
+  const allowPrev = canGoPrev(anchor, period, min)
+  const allowNext = canGoNext(anchor, period)
 
-  function selectPreset(nextDays: number) {
-    onChange({ days: nextDays, endDate: undefined })
+  function selectPreset(nextPeriod: PeriodType) {
+    onChange({ period: nextPeriod, anchor: undefined })
   }
 
   function selectDate(value: string) {
-    onChange({ days, endDate: value || undefined })
+    onChange({ period, anchor: value || undefined })
   }
 
   function shift(direction: 'prev' | 'next') {
-    const nextEndDate = shiftEndDate(endDate, days, direction)
-    onChange({ days, endDate: nextEndDate })
+    onChange({ period, anchor: shiftPeriod(anchor, period, direction, min) })
   }
 
   return (
@@ -46,8 +50,9 @@ export function TimeRangeNav({ days, endDate, onChange }: TimeRangeNavProps) {
           <button
             type="button"
             onClick={() => shift('prev')}
+            disabled={!allowPrev}
             aria-label="Periodo precedente"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -56,7 +61,8 @@ export function TimeRangeNav({ days, endDate, onChange }: TimeRangeNavProps) {
             <Calendar className="pointer-events-none absolute left-3 h-4 w-4 text-slate-400" />
             <input
               type="date"
-              value={endDate ?? ''}
+              value={anchor ?? ''}
+              min={minDate ?? undefined}
               max={todayDateOnly()}
               onChange={(event) => selectDate(event.target.value)}
               className="rounded-lg border border-slate-300 py-2 pr-3 pl-9 text-sm"
@@ -78,11 +84,11 @@ export function TimeRangeNav({ days, endDate, onChange }: TimeRangeNavProps) {
       <div className="flex flex-wrap gap-2">
         {RANGE_PRESETS.map((preset) => (
           <button
-            key={preset.days}
+            key={preset.period}
             type="button"
-            onClick={() => selectPreset(preset.days)}
+            onClick={() => selectPreset(preset.period)}
             className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-              days === preset.days && !endDate
+              period === preset.period && !anchor
                 ? 'bg-amber-500 text-white'
                 : 'bg-slate-50 text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100'
             }`}
@@ -90,10 +96,10 @@ export function TimeRangeNav({ days, endDate, onChange }: TimeRangeNavProps) {
             {preset.label}
           </button>
         ))}
-        {endDate ? (
+        {anchor ? (
           <button
             type="button"
-            onClick={() => onChange({ days, endDate: undefined })}
+            onClick={() => onChange({ period, anchor: undefined })}
             className="rounded-lg px-3 py-1.5 text-sm font-medium text-amber-700 ring-1 ring-amber-200 hover:bg-amber-50"
           >
             Torna a oggi

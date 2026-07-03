@@ -1,13 +1,15 @@
+export type PeriodType = 'day' | 'week' | 'month'
+
 export type TimeRangeInput = {
-  days: number
-  endDate?: string
+  period: PeriodType
+  anchor?: string
 }
 
 export type ResolvedTimeRange = {
   from: Date
   to: Date
-  days: number
-  endDate: string | null
+  period: PeriodType
+  anchor: string | null
   isLive: boolean
 }
 
@@ -27,79 +29,148 @@ export function startOfLocalDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate())
 }
 
-function addLocalDays(date: Date, days: number) {
+function addDays(date: Date, days: number) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days)
 }
 
-export function resolveTimeRange({ days, endDate }: TimeRangeInput): ResolvedTimeRange {
-  const now = new Date()
-  const anchorDay = endDate ? parseDateOnly(endDate) : startOfLocalDay(now)
-  const from = addLocalDays(anchorDay, -(days - 1))
-  let to = endDate ? addLocalDays(anchorDay, 1) : now
+function mondayOf(date: Date) {
+  const weekday = date.getDay()
+  const offset = (weekday + 6) % 7
+  return addDays(startOfLocalDay(date), -offset)
+}
 
-  if (to > now) {
-    to = now
+function periodBounds(period: PeriodType, anchorDay: Date) {
+  if (period === 'day') {
+    const start = startOfLocalDay(anchorDay)
+    return { start, end: addDays(start, 1) }
   }
 
+  if (period === 'week') {
+    const start = mondayOf(anchorDay)
+    return { start, end: addDays(start, 7) }
+  }
+
+  const start = new Date(anchorDay.getFullYear(), anchorDay.getMonth(), 1)
+  const end = new Date(anchorDay.getFullYear(), anchorDay.getMonth() + 1, 1)
+  return { start, end }
+}
+
+export function resolveTimeRange({ period, anchor }: TimeRangeInput): ResolvedTimeRange {
+  const now = new Date()
+  const anchorDay = anchor ? parseDateOnly(anchor) : startOfLocalDay(now)
+  const { start, end } = periodBounds(period, anchorDay)
+  const isLive = end > now
+
   return {
-    from,
-    to,
-    days,
-    endDate: endDate ?? null,
-    isLive: !endDate,
+    from: start,
+    to: isLive ? now : end,
+    period,
+    anchor: anchor ?? null,
+    isLive,
   }
 }
 
-export function shiftEndDate(
-  endDate: string | undefined,
-  days: number,
-  direction: 'prev' | 'next',
-) {
-  const baseDay = endDate ? parseDateOnly(endDate) : startOfLocalDay(new Date())
-  const delta = direction === 'prev' ? -days : days
-  const newDay = addLocalDays(baseDay, delta)
-  const today = startOfLocalDay(new Date())
+function shiftAnchorDay(anchorDay: Date, period: PeriodType, direction: 'prev' | 'next') {
+  const sign = direction === 'prev' ? -1 : 1
 
-  if (newDay >= today) {
+  if (period === 'day') {
+    return addDays(anchorDay, sign)
+  }
+
+  if (period === 'week') {
+    return addDays(anchorDay, 7 * sign)
+  }
+
+  return new Date(anchorDay.getFullYear(), anchorDay.getMonth() + sign, 1)
+}
+
+export function shiftPeriod(
+  anchor: string | undefined,
+  period: PeriodType,
+  direction: 'prev' | 'next',
+  minDate?: string,
+) {
+  const baseDay = anchor ? parseDateOnly(anchor) : startOfLocalDay(new Date())
+  const newDay = shiftAnchorDay(baseDay, period, direction)
+  const { start, end } = periodBounds(period, newDay)
+
+  if (direction === 'next' && end > new Date()) {
     return undefined
+  }
+
+  if (direction === 'prev' && minDate) {
+    const minDay = parseDateOnly(minDate)
+    if (start < minDay) {
+      return undefined
+    }
   }
 
   return formatDateOnly(newDay)
 }
 
-export function canGoNext(endDate: string | undefined, days: number) {
-  if (!endDate) {
+export function canGoNext(anchor: string | undefined, period: PeriodType) {
+  if (!anchor) {
     return false
   }
 
-  const { to } = resolveTimeRange({ days, endDate })
-  return to.getTime() < Date.now() - 60_000
+  const { end } = periodBounds(period, parseDateOnly(anchor))
+  return end.getTime() <= Date.now()
+}
+
+export function canGoPrev(
+  anchor: string | undefined,
+  period: PeriodType,
+  minDate?: string,
+) {
+  if (!minDate) {
+    return true
+  }
+
+  const baseDay = anchor ? parseDateOnly(anchor) : startOfLocalDay(new Date())
+  const previousDay = shiftAnchorDay(baseDay, period, 'prev')
+  const { start } = periodBounds(period, previousDay)
+  const minDay = parseDateOnly(minDate)
+
+  return start >= minDay
 }
 
 export function formatPeriodLabel(range: ResolvedTimeRange) {
-  if (range.isLive) {
-    if (range.days === 1) {
+  const anchorDay = range.anchor ? parseDateOnly(range.anchor) : startOfLocalDay(range.to)
+
+  if (range.period === 'day') {
+    if (range.isLive) {
       return 'Oggi (dalla mezzanotte a ora)'
     }
 
-    return `Ultimi ${range.days} giorni`
+    return capitalize(formatFullDay(anchorDay))
   }
 
-  const anchorDay = range.endDate ? parseDateOnly(range.endDate) : range.to
-
-  if (range.days === 1) {
-    return capitalize(formatDay(anchorDay))
+  if (range.period === 'week') {
+    const { start, end } = periodBounds('week', anchorDay)
+    const sunday = addDays(end, -1)
+    const label = `Settimana ${formatShortDay(start)} – ${formatFullDay(sunday)}`
+    return range.isLive ? `${label} (in corso)` : label
   }
 
-  return `${formatDay(range.from)} – ${formatDay(anchorDay)}`
+  const label = capitalize(
+    anchorDay.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' }),
+  )
+  return range.isLive ? `${label} (in corso)` : label
 }
 
-function formatDay(date: Date) {
+function formatFullDay(date: Date) {
   return date.toLocaleDateString('it-IT', {
     weekday: 'short',
     day: '2-digit',
     month: 'short',
     year: 'numeric',
+  })
+}
+
+function formatShortDay(date: Date) {
+  return date.toLocaleDateString('it-IT', {
+    day: '2-digit',
+    month: 'short',
   })
 }
 
@@ -112,7 +183,7 @@ export function todayDateOnly() {
 }
 
 export const RANGE_PRESETS = [
-  { label: 'Oggi', days: 1 },
-  { label: '7 giorni', days: 7 },
-  { label: '30 giorni', days: 30 },
-] as const
+  { label: 'Oggi', period: 'day' },
+  { label: 'Settimana', period: 'week' },
+  { label: 'Mese', period: 'month' },
+] as const satisfies ReadonlyArray<{ label: string; period: PeriodType }>

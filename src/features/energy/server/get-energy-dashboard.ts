@@ -6,10 +6,14 @@ import {
 } from '@/features/energy/battery-stats'
 import { mapEnergySampleRow } from '@/features/energy/mappers'
 import type { EnergyDashboardData } from '@/features/energy/types'
-import { resolveTimeRange } from '@/features/energy/time-range'
+import {
+  formatDateOnly,
+  type PeriodType,
+  resolveTimeRange,
+} from '@/features/energy/time-range'
 import { getConfig } from '@/lib/config/service'
 import { defaultAppConfig } from '@/lib/config/schema'
-import { getEnergySamples } from '@/server/db/energy-repository'
+import { getEnergySamples, getFirstSampleDate } from '@/server/db/energy-repository'
 import {
   getStationId,
   getSyncSummary,
@@ -19,10 +23,10 @@ import {
 
 export const getEnergyDashboard = createServerFn({ method: 'GET' })
   .validator((data: unknown) => {
-    const input = (data ?? {}) as { days?: number; endDate?: string }
+    const input = (data ?? {}) as { period?: PeriodType; anchor?: string }
     return {
-      days: input.days !== undefined ? Number(input.days) : undefined,
-      endDate: input.endDate,
+      period: input.period,
+      anchor: input.anchor,
     }
   })
   .handler(async ({ data }): Promise<EnergyDashboardData> => {
@@ -36,26 +40,26 @@ export const getEnergyDashboard = createServerFn({ method: 'GET' })
         syncStatus = await getSyncSummary()
       }
 
-      const defaultDays = Math.max(
-        1,
-        Math.round(config.dashboard.defaultRangeHours / 24),
-      )
-      const days = data.days ?? defaultDays
+      const period = data.period ?? defaultPeriod(config.dashboard.defaultRangeHours)
       const timeRange = resolveTimeRange({
-        days,
-        endDate: data.endDate,
+        period,
+        anchor: data.anchor,
       })
-      const rows = await getEnergySamples({
-        stationId,
-        from: timeRange.from,
-        to: timeRange.to,
-      })
+      const [rows, firstSampleDate] = await Promise.all([
+        getEnergySamples({
+          stationId,
+          from: timeRange.from,
+          to: timeRange.to,
+        }),
+        getFirstSampleDate(stationId),
+      ])
       const samples = rows.map(mapEnergySampleRow)
 
       return {
         samples,
-        days: timeRange.days,
-        endDate: timeRange.endDate,
+        period: timeRange.period,
+        anchor: timeRange.anchor,
+        firstDataDate: firstSampleDate ? formatDateOnly(firstSampleDate) : null,
         periodFrom: timeRange.from.toISOString(),
         periodTo: timeRange.to.toISOString(),
         isLive: timeRange.isLive,
@@ -70,8 +74,9 @@ export const getEnergyDashboard = createServerFn({ method: 'GET' })
 
       return {
         samples: [],
-        days: 1,
-        endDate: null,
+        period: 'day',
+        anchor: null,
+        firstDataDate: null,
         periodFrom: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
         periodTo: new Date().toISOString(),
         isLive: true,
@@ -103,6 +108,18 @@ export const getEnergyDashboard = createServerFn({ method: 'GET' })
       }
     }
   })
+
+function defaultPeriod(defaultRangeHours: number): PeriodType {
+  if (defaultRangeHours >= 24 * 30) {
+    return 'month'
+  }
+
+  if (defaultRangeHours >= 24 * 7) {
+    return 'week'
+  }
+
+  return 'day'
+}
 
 export const runEnergySync = createServerFn({ method: 'POST' }).handler(async () => {
   return syncSolarmanMinute({ backfillDays: 2 })

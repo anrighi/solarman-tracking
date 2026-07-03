@@ -6,8 +6,8 @@ import type { DashboardSearch } from '@/features/energy/components/time-range-na
 import { getEnergyDashboard } from '@/features/energy/server/get-energy-dashboard'
 
 const searchSchema = z.object({
-  days: z.coerce.number().int().min(1).max(90).optional(),
-  endDate: z
+  period: z.enum(['day', 'week', 'month']).optional(),
+  anchor: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
     .optional(),
@@ -16,12 +16,12 @@ const searchSchema = z.object({
 export const Route = createFileRoute('/')({
   validateSearch: searchSchema,
   loaderDeps: ({ search }) => ({
-    days: search.days,
-    endDate: search.endDate,
+    period: search.period,
+    anchor: search.anchor,
   }),
   loader: ({ deps }) =>
     getEnergyDashboard({
-      data: { days: deps.days, endDate: deps.endDate },
+      data: { period: deps.period, anchor: deps.anchor },
     }),
   component: Home,
 })
@@ -31,13 +31,13 @@ function Home() {
   const search = Route.useSearch()
   const navigate = Route.useNavigate()
 
-  const days = search.days ?? data.days
+  const period = search.period ?? data.period
 
   function handleRangeChange(next: DashboardSearch) {
     navigate({
       search: {
-        days: next.days,
-        endDate: next.endDate,
+        period: next.period,
+        anchor: next.anchor,
       },
       replace: true,
     })
@@ -47,8 +47,8 @@ function Home() {
     <main className="min-h-screen bg-slate-100 p-6">
       <EnergyDashboard
         data={data}
-        days={days}
-        endDate={search.endDate}
+        period={period}
+        anchor={search.anchor}
         onRangeChange={handleRangeChange}
       />
     </main>

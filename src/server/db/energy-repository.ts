@@ -94,6 +94,20 @@ export async function getEnergySamples(input: {
   })
 }
 
+export async function getFirstSampleDate(stationId: number) {
+  return withConnection(async (connection) => {
+    const [rows] = await connection.query<RowDataPacket[]>(
+      `SELECT MIN(recorded_at) AS first_at
+       FROM energy_samples_minute
+       WHERE station_id = ?`,
+      [stationId],
+    )
+
+    const value = rows[0]?.first_at
+    return value ? new Date(value) : null
+  })
+}
+
 export async function countEnergySamples(stationId: number) {
   return withConnection(async (connection) => {
     const [rows] = await connection.query<RowDataPacket[]>(
