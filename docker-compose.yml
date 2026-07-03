@@ -1,0 +1,81 @@
+services:
+  app:
+    build:
+      context: .
+    image: solar-tracking-app:local
+    container_name: solar_tracking_app
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "127.0.0.1:3000:3000"
+    env_file:
+      - path: .env.docker
+        required: false
+      - path: .env
+        required: false
+    command: pnpm dev --host 0.0.0.0
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+    image: solar-tracking-app:local
+    container_name: solar_tracking_worker
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+    env_file:
+      - path: .env.docker
+        required: false
+      - path: .env
+        required: false
+    command: pnpm sync:worker
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  mysql:
+    image: mysql:8.0
+    container_name: solar_tracking_db
+    ports:
+      - "127.0.0.1:3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_pwd}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-solar_tracking}
+      MYSQL_USER: ${MYSQL_USER:-solartracking}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-solartracking_pwd}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  llm:
+    image: ghcr.io/ggerganov/llama.cpp:server
+    container_name: solar_tracking_llm
+    ports:
+      - "127.0.0.1:8080:8080"
+    profiles: ["full"]
+
+  telegram-bot:
+    build:
+      context: .
+    image: solar-tracking-app:local
+    container_name: solar_tracking_tgbot
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: sh -c "echo 'Telegram bot placeholder for Phase 3' && sleep infinity"
+    profiles: ["full"]
+
+volumes:
+  mysql_data:
