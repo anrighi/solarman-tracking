@@ -1,50 +1,67 @@
 ---
-description: Regole manutenzione agent-first per Solar Tracking
+description: Agent-first maintenance rules for Solar Tracking
 alwaysApply: true
 ---
 
-# Solar Tracking — Manutenzione agent-first
+# Solar Tracking — Agent-first maintenance
 
-## Prima di ogni sessione
-1. Leggere `docs/FEATURES.md` → sezione **Fase attiva**
-2. Leggere `AGENTS.md` per convenzioni e comandi
-3. Verificare `.env` (locale) o `.env.docker` (container) da `.env.example`
-4. Eseguire `pnpm run test` prima di modifiche invasive
+## Before each session
 
-## Durante il lavoro
-- Lavorare **solo** sulla fase/feature indicata in `FEATURES.md`
-- Usare import assoluti (`@/...`), TypeScript strict, testi UI in italiano
-- Struttura feature-based: `src/features/<nome>/`
-- Early return, pochi commenti, diff minimi
-- Mock per test esterni (Solarman, Telegram, LLM, meteo)
-- Non esporre l'app in rete: bind su `127.0.0.1` only
+1. Read `docs/FEATURES.md` → **Active phase** section
+2. Read `AGENTS.md` for conventions and commands
+3. Verify `.env` (local) or `.env.docker` (container) from `.env.example`
+4. Run `pnpm run test` before invasive changes
 
-## A fine sessione
-1. Aggiornare stato feature e checkbox in `docs/FEATURES.md`
-2. Aggiungere riga al **Handoff log** con prossimo passo concreto
-3. Eseguire `pnpm run test` e `pnpm run build` se toccato codice applicativo
+## During work
 
-## Env e segreti
-- `.env.example` — template committato
-- `.env.local.example` — template dev locale (host → MySQL su 127.0.0.1)
-- `.env.docker` — variabili per Docker Compose (host → `mysql`)
-- `.env` / `.env.local` — **mai committare**, contengono credenziali reali
+- Work only on the phase/feature indicated in `FEATURES.md`
+- Use absolute imports (`@/...`), TypeScript strict
+- **UI text:** Italian | **Docs, README, TODO, rules, commits:** English
+- Feature-based structure: `src/features/<name>/`
+- Early return, minimal comments, small diffs
+- Mock external services (Solarman, Telegram, LLM, weather)
+- Do not expose the app on the network: bind `127.0.0.1` only
+- **No hardcoded tunables** — use `getConfig()` from `app_config` (see `config-driven.mdc`)
 
-## Fasi (non saltare)
-| Fase | Scope |
-|------|-------|
-| 0 | Bootstrap, Docker, env, tracking, test base |
-| 1 | Sync Solarman → MySQL |
-| 2 | Dashboard + aggregati |
-| 3 | Telegram + AI classificazione |
-| 4 | Meteo + forecast |
+## End of session
 
-## Comandi
+1. Update feature status in `docs/features/F*.md` and `docs/FEATURES.md`
+2. Add a row to the **Handoff log** with a concrete next step
+3. Run `pnpm run test` and `pnpm run build` if application code changed
+4. Follow `commit-convention.mdc` when marking features complete
+
+## Env and secrets
+
+- `.env.example` — committed template
+- `.env.local.example` — local dev template (host → MySQL on 127.0.0.1)
+- `.env.docker` — Docker Compose variables (host → `mysql`)
+- `.env` / `.env.local` — **never commit**, contain real credentials
+- Tunables (intervals, thresholds) → `app_config` table via Settings UI
+
+## Phases (do not skip)
+
+| Phase | Scope |
+|-------|-------|
+| 0 | Bootstrap, Docker, env, tracking, base tests |
+| 1 | Solarman sync → MySQL, checkpoint backfill |
+| 2 | Dashboard + aggregates + battery history |
+| 3 | Telegram + AI classification + battery alerts |
+| 4 | Weather + forecast |
+
+## First-time setup
+
+See `docs/INIT.md` for clone → env → docker → backfill → settings → backup.
+
+## Commands
+
 ```bash
-docker compose up -d          # stack base (app, worker, mysql)
-docker compose --profile full up -d  # + llm, telegram-bot
-pnpm run dev                  # dev locale (fuori Docker)
+docker compose up -d                        # base stack (app, worker, mysql)
+docker compose --profile full up -d         # + llm, telegram-bot
+docker compose --profile backup up -d       # + scheduled backup to Google Drive
+pnpm run dev                                # local dev (outside Docker)
 pnpm run test
 pnpm run sync:once
+pnpm run sync:backfill:full
 pnpm run sync:worker
+pnpm run db:dump
 ```

@@ -16,4 +16,6 @@ dist-ssr
 __unconfig*
 todos.json
 .pnpm-store/
+backups/
 solar-tracking-phased_*.plan.md
+.vscode/

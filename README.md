@@ -1,75 +1,82 @@
 # Solar Tracking
 
-Piattaforma locale per monitoraggio impianto fotovoltaico: sync dati Solarman, dashboard energetica, classificazione consumi via Telegram + AI locale.
+Local platform for photovoltaic plant monitoring: Solarman data sync, energy dashboard, battery alerts via Telegram, and (planned) consumption classification with local AI.
 
-Documentazione avanzamento: [`docs/FEATURES.md`](docs/FEATURES.md)
+**UI language:** Italian. **Documentation:** English.
 
-## Requisiti
+Progress tracking: [`docs/FEATURES.md`](docs/FEATURES.md) | First-time setup: [`docs/INIT.md`](docs/INIT.md)
+
+## Requirements
 
 - Node.js 22+
 - pnpm
 - Docker + Docker Compose
 
-## Configurazione env
-
-| File | Uso |
-|------|-----|
-| `.env.example` | Template generale (riferimento) |
-| `.env.local.example` | Dev locale → copiare in `.env.local` |
-| `.env.docker` | Usato da Docker Compose (committato) |
-| `.env` / `.env.local` | Credenziali reali — **non committare** |
+## Quick start
 
 ```bash
 cp .env.local.example .env.local
-# oppure
-cp .env.example .env
-```
-
-## Avvio rapido
-
-### Stack Docker (consigliato)
-
-```bash
 docker compose up -d
-```
-
-Servizi: `app` (http://127.0.0.1:3000), `worker`, `mysql`.
-
-Per LLM e bot Telegram (fase 3):
-
-```bash
-docker compose --profile full up -d
-```
-
-### Dev locale (fuori Docker)
-
-```bash
 pnpm install
-docker compose up -d mysql   # solo DB
-pnpm dev
+pnpm run sync:backfill:full   # initial historical backfill
+pnpm run dev                  # http://127.0.0.1:3000
 ```
 
-## Comandi
+See [`docs/INIT.md`](docs/INIT.md) for the full setup guide.
+
+## Environment files
+
+| File | Purpose |
+|------|---------|
+| `.env.example` | General template (reference) |
+| `.env.local.example` | Local dev → copy to `.env.local` |
+| `.env.docker` | Used by Docker Compose (committed) |
+| `.env` / `.env.local` | Real credentials — **never commit** |
+
+Secrets (Solarman, Telegram, MySQL) stay in env files. Tunables (sync interval, battery thresholds, etc.) are managed in the in-app **Settings** panel and stored in the `app_config` DB table.
+
+## Commands
 
 ```bash
-pnpm run dev           # server dev
-pnpm run build         # build produzione
-pnpm run test          # test con mock
-pnpm run sync:once     # sync singola Solarman
-pnpm run sync:backfill # backfill storico
-pnpm run sync:worker   # worker cron continuo
+pnpm run dev                  # dev server
+pnpm run build                # production build
+pnpm run test                 # tests (mocked externals)
+
+pnpm run sync:once            # single sync (today + realtime)
+pnpm run sync:backfill        # manual window backfill [days] [offset]
+pnpm run sync:backfill:full   # checkpoint-driven full backfill
+pnpm run sync:worker          # continuous sync loop (interval from app_config)
+
+pnpm run db:dump              # MySQL dump + app_config JSON export
+pnpm run db:restore           # restore from backup
 ```
 
-## Architettura
+## Docker services
 
-- **Frontend/API**: TanStack Start + React (TypeScript)
-- **DB**: MySQL 8 (dati minuto + aggregati)
-- **Sync**: worker cron (no live API)
-- **AI**: OpenLLaMA locale in Docker (fase 3)
-- **UI**: italiano, accesso solo localhost
+```bash
+docker compose up -d                    # app, worker, mysql
+docker compose --profile full up -d     # + llm, telegram-bot
+docker compose --profile backup up -d   # + scheduled backup to Google Drive
+```
 
-## Per agenti
+MySQL data persists in the `mysql_data` named volume. **Warning:** `docker compose down -v` deletes all data.
 
-1. Leggere `docs/FEATURES.md` e `.cursor/rules/agent-maintenance.mdc`
-2. Seguire `AGENTS.md`
-3. Aggiornare handoff log a fine sessione
+## Architecture
+
+- **Frontend/API:** TanStack Start + React (TypeScript)
+- **DB:** MySQL 8 (minute samples, checkpoints, app config)
+- **Sync:** background worker polling Solarman (5-min granularity)
+- **Config:** `app_config` table + Settings UI (exported in backups)
+- **Backup:** local dumps + optional rclone → Google Drive
+- **Access:** localhost only (`127.0.0.1`)
+
+## For agents
+
+1. Read `docs/FEATURES.md` → **Active phase** section
+2. Follow `AGENTS.md` and `.cursor/rules/`
+3. Update feature file + handoff log when completing work
+4. See `.cursor/rules/commit-convention.mdc` for commit rules
+
+## License
+
+[MIT](LICENSE)

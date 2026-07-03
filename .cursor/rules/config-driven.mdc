@@ -1,0 +1,30 @@
+---
+description: Config-driven features — no hardcoded tunables
+alwaysApply: true
+---
+
+# Config-driven features
+
+## Principle
+
+Application tunables (intervals, thresholds, feature flags, UI defaults) must **not** be hardcoded in business logic. They live in the `app_config` DB table and are validated by `appConfigSchema` in `src/lib/config/schema.ts`.
+
+## When adding a new tunable
+
+1. Add field to `appConfigSchema` with a sensible default
+2. Expose it in the Settings UI (`/settings`) with Italian labels
+3. Read via `getConfig()` in consumers (sync worker, backfill, alerts, dashboard)
+4. Document the key in the relevant `docs/features/F*.md` file
+
+## What stays in env
+
+Secrets and infrastructure only:
+
+- MySQL connection
+- Solarman API credentials
+- Telegram bot token / chat ID
+- LLM endpoint
+
+## Cache
+
+`getConfig()` may cache in memory; call `invalidateConfigCache()` after `updateConfig()`.

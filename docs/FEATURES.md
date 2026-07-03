@@ -1,95 +1,96 @@
-# Solar Tracking — Registro funzionalità
+# Solar Tracking — Feature registry
 
-> Ultimo aggiornamento: 2026-07-03 | Fase attiva: 2 | Agente: Cursor
+> Last updated: 2026-07-03 | Active phase: 2 | Agent: Cursor
 
-## Stato globale
-| Fase | Nome | Stato | Completamento |
-|------|------|-------|---------------|
+## Global status
+
+| Phase | Name | Status | Completion |
+|-------|------|--------|------------|
 | 0 | Bootstrap | done | 100% |
-| 1 | Ingestion Solarman | done | 90% |
-| 2 | Dashboard | in_progress | 70% |
-| 3 | Telegram + AI | pending | 0% |
-| 4 | Meteo + Forecast | pending | 0% |
+| 1 | Solarman ingestion | done | 100% |
+| 2 | Dashboard | in_progress | 80% |
+| 3 | Telegram + AI | in_progress | 15% |
+| 4 | Weather + Forecast | pending | 0% |
+| 5 | Custom reports | pending | 0% |
+| 0+ | CI & static analysis | pending | 0% |
 
-## Fase attiva — cosa fare ora
-- Obiettivo corrente: aggregati giorno/settimana/mese (F1) e validazione sync live
-- Prerequisiti verificati (env, Docker, test): schema MySQL, client Solarman, sync job, chart Recharts
-- Task rimanenti con checkbox:
-  - [x] Schema MySQL (`energy_samples_minute`, `sync_state`, `energy_samples_raw`)
-  - [x] Client Solarman (token, realtime, history frame)
-  - [x] Job sync + script `sync:once` / `sync:backfill` / `sync:worker`
-  - [x] Dashboard con grafico produzione/consumo/batteria (24h)
-  - [ ] Configurare credenziali Solarman reali in `.env`
-  - [ ] Verificare sync live con impianto reale
-  - [ ] Aggregati giorno/settimana/mese (F1)
-- Blocker aperti: Nessuno
+## Active phase — what to do now
 
-## Feature matrix (dettaglio)
+- **Current goal:** F1 aggregates + live Solarman validation
+- **Prerequisites verified:** MySQL schema, Solarman client, sync jobs, Recharts dashboard, station grid fields
+- **Remaining tasks:**
+  - [x] F11 Config panel (`app_config` + Settings UI)
+  - [x] F7 Checkpoint backfill (`sync:backfill:full`)
+  - [x] F9 Historical battery tracking
+  - [x] F10 Telegram battery alerts
+  - [x] F8 DB backup + Google Drive
+  - [x] F2 station grid/battery-split minute mapping + English DB columns
+  - [ ] F1 Day/week/month/year aggregates
+  - [ ] Configure real Solarman credentials in `.env`
+  - [ ] Validate live sync with real plant
+- **Open blockers:** None
 
-### F0 — Scaffold, Docker, env, regole agent
-- Stato: done
-- Fase: 0
-- File: `package.json`, `docker-compose.yml`, `.env.docker`, `.env.local.example`, `docs/FEATURES.md`, `AGENTS.md`, `.cursor/rules/agent-maintenance.mdc`, `src/lib/env.ts`
-- Test: `src/lib/env.test.ts`, `src/lib/solarman/client.test.ts`, `pnpm run build`
-- Criteri accettazione: Repo avviabile, container MySQL attivi, dashboard bootstrap caricata, regole agent e env multi-file presenti.
+## Feature index
 
-### F1 — Totali giorno/settimana/mese/anno
-- Stato: not_started
-- Fase: 2
-- File: `src/features/energy/...`
-- Test: `src/features/energy/...test.ts`
-- Criteri accettazione: Aggregati visibili in UI
-- Note agente: ...
+| ID | Feature | Phase | Status | Detail |
+|----|---------|-------|--------|--------|
+| F0 | Bootstrap, Docker, env | 0 | done | [F0-bootstrap.md](features/F0-bootstrap.md) |
+| F1 | Day/week/month/year totals | 2 | not_started | [F1-aggregates.md](features/F1-aggregates.md) |
+| F2 | Minute series | 1+2 | done | [F2-minute-series.md](features/F2-minute-series.md) |
+| F3 | Consumption classification (Telegram + AI) | 3 | not_started | [F3-classification.md](features/F3-classification.md) |
+| F4 | Historical energy vs weather | 4 | not_started | [F4-weather-history.md](features/F4-weather-history.md) |
+| F5 | Weather-based forecast | 4 | not_started | [F5-forecast.md](features/F5-forecast.md) |
+| F6 | Telegram daily recap | 3 | not_started | [F6-telegram-recap.md](features/F6-telegram-recap.md) |
+| F7 | Checkpoint backfill | 1 | done | [F7-backfill-checkpoints.md](features/F7-backfill-checkpoints.md) |
+| F8 | DB backup + Google Drive | 0+1 | done | [F8-backup.md](features/F8-backup.md) |
+| F9 | Battery dashboard (historical) | 2 | done | [F9-battery-dashboard.md](features/F9-battery-dashboard.md) |
+| F10 | Telegram battery alerts | 3 | done | [F10-battery-alerts.md](features/F10-battery-alerts.md) |
+| F11 | Config control panel | 0+2 | done | [F11-config-panel.md](features/F11-config-panel.md) |
+| F12 | Customizable reports | 5 | not_started | [F12-reports.md](features/F12-reports.md) |
+| F13 | Static analysis + GitHub CI | 0+ | not_started | [F13-ci-quality.md](features/F13-ci-quality.md) |
 
-### F2 — Serie minuto (produzione/consumo/batteria)
-- Stato: done
-- Fase: 1 + 2
-- File: `src/lib/solarman/client.ts`, `src/server/jobs/sync-solarman.ts`, `src/features/energy/components/energy-chart.tsx`
-- Criteri accettazione: Dati crudi e normalizzati in DB, cron job attivo.
-- Note agente: modalità demo automatica se credenziali Solarman assenti
+## Architecture decisions (light ADR)
 
-### F3 — Classificazione consumi via Telegram + AI
-- Stato: not_started
-- Fase: 3
-- File: `src/lib/telegram/bot.ts`, `src/features/classification/service.ts`, `src/lib/llm/openllama-client.ts`
+| Date | Decision | Rationale | Rejected alternative |
+|------|----------|-----------|---------------------|
+| 2026-06-01 | TanStack Start (RC) | Modern full-stack reactive platform | Next.js (complexity) |
+| 2026-06-01 | pnpm | Speed, monorepo support | npm / yarn |
+| 2026-07-02 | mysql2 raw SQL | Simplicity for phase 1 | Drizzle (deferred) |
+| 2026-07-02 | Recharts | Quick time-series charts in React | Chart.js |
+| 2026-07-03 | Shared schema.sql | Single DDL for Docker init and runtime migrate | Inline duplicated DDL |
+| 2026-07-03 | app_config in DB | Source of truth for tunables; JSON export for backup | File-only config |
+| 2026-07-03 | Worker 5-min interval | Matches Solarman 5-min data granularity | 1-min polling |
+| 2026-07-03 | MIT license | Permissive, simple | — |
+| 2026-07-03 | Italian UI / English docs | User preference | — |
+| 2026-07-03 | English DB/code identifiers, Italian UI only | Consistent dev naming; UI labels stay Italian | Italian column names in schema |
+| 2026-07-03 | Report defs in DB, not app_config | User-created templates vs global tunables | File-based report YAML |
+| 2026-07-03 | ESLint + Prettier + GHA ci.yml | Standard TS/React tooling; no secrets in CI | Biome-only; Docker-based CI |
 
-### F4 — Confronto storico con meteo
-- Stato: not_started
-- Fase: 4
-- File: `src/lib/weather/client.ts`
+## Handoff log (last 5 entries)
 
-### F5 — Forecast produzione da meteo
-- Stato: not_started
-- Fase: 4
-- File: `src/features/forecast/service.ts`
+| Date | Agent | Phase | Done | Next step | Blocker |
+|------|-------|-------|------|-----------|---------|
+| 2026-07-03 | Cursor | docs | F13 CI spec: ESLint, Prettier, typecheck, Vitest, build in GitHub Actions | F1 aggregates + live Solarman validation | None |
+| 2026-07-03 | Cursor | 1+2 | F2 extended: station grid import/export, battery charge/discharge, English DB columns, dashboard KPIs | F1 aggregates + live Solarman validation | None |
+| 2026-07-03 | Cursor | docs | F12 customizable reports spec (builder UI, time frame, metric blocks) | F1 aggregates + live Solarman validation | None |
+| 2026-07-03 | Cursor | 1–3 | F7–F11: config panel, checkpoint backfill, battery dashboard, Telegram alerts, backup | F1 aggregates + live Solarman validation | None |
+| 2026-07-03 | Cursor | 1+2 | Phase 1–2 cleanup, logical commits, schema/mapping dedupe | Aggregates (F1) | None |
 
-### F6 — Recap Telegram giornaliero/on-demand
-- Stato: not_started
-- Fase: 3
+## Useful commands
 
-## Decisioni architetturali (ADR leggere)
-| Data | Decisione | Motivazione | Alternativa scartata |
-|------|-----------|-------------|----------------------|
-| 2026-06-01 | TanStack Start (RC) | Piattaforma full-stack moderna e reattiva | Next.js (complessità) |
-| 2026-06-01 | pnpm | Velocità, supporto monorepo / lockfile pulito | npm / yarn |
-| 2026-07-02 | mysql2 raw SQL | Semplicità per fase 1, nessun ORM da configurare | Drizzle (rimandato) |
-| 2026-07-02 | Recharts | Grafico rapido per serie temporali in React | Chart.js |
-| 2026-07-03 | schema.sql condiviso | Unica DDL per Docker init e migrate runtime | DDL duplicata inline |
+```bash
+docker compose up -d
+pnpm run test
+pnpm run ci              # (F13) typecheck + lint + format + test + build
+pnpm run sync:once
+pnpm run sync:backfill          # last 7 days (default)
+pnpm run sync:backfill:full     # checkpoint-driven full backfill
+pnpm run sync:worker
+pnpm run db:dump
+pnpm run dev
+```
 
-## Handoff log (ultime 5 entry)
-| Data | Agente | Fase | Fatto | Prossimo passo | Blocker |
-|------|--------|------|-------|----------------|---------|
-| 2026-07-03 | Cursor | 1+2 | Cleanup fase 1-2, commit logici, dedupe schema/mapping | Aggregati giorno/settimana/mese (F1) | Nessuno |
-| 2026-07-03 | Cursor | 1 | Pulizia comandi sync, test sync:once/backfill OK | Aggregati giorno/settimana/mese (F1) | Nessuno |
-| 2026-05-31 | Cursor | 0 | Chiusura Fase 0: regole agent, env multi-file, test env, README, build OK | Avviare Docker Desktop e `docker compose up -d` per verifica runtime | Docker daemon non attivo in CI locale |
-| 2026-07-02 | Cursor | 1+2 | Sync Solarman + grafico 24h dashboard | Inserire credenziali Solarman e validare dati live | Nessuno |
-| 2026-06-01 | Antigravity | 0 | Setup progetto base | Avviare docker compose e verificare pagina iniziale | Nessuno |
+## Localization
 
-## Comandi utili per riprendere
-- `docker compose up -d`
-- `pnpm run test`
-- `pnpm run sync:once`
-- `pnpm run sync:backfill` — ultimi 7 giorni (default)
-- `pnpm run sync:backfill 1 1` — solo ieri
-- `pnpm run sync:worker`
-- `pnpm run dev`
+- **App UI + Telegram messages:** Italian
+- **README, docs, TODO, rules, commit messages:** English
