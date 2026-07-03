@@ -56,7 +56,7 @@ pnpm run db:restore           # restore from backup
 ```bash
 docker compose up -d                    # app, worker, mysql
 docker compose --profile full up -d     # + llm, telegram-bot
-docker compose --profile backup up -d   # + scheduled backup to Google Drive
+docker compose --profile backup up -d   # + scheduled backup to Cubbit DS3
 ```
 
 MySQL data persists in the `mysql_data` named volume. **Warning:** `docker compose down -v` deletes all data.
@@ -67,7 +67,7 @@ MySQL data persists in the `mysql_data` named volume. **Warning:** `docker compo
 - **DB:** MySQL 8 (minute samples, checkpoints, app config)
 - **Sync:** background worker polling Solarman (5-min granularity)
 - **Config:** `app_config` table + Settings UI (exported in backups)
-- **Backup:** local dumps + optional rclone → Google Drive
+- **Backup:** local dumps + optional rclone → Cubbit DS3
 - **Access:** localhost only (`127.0.0.1`)
 
 ## For agents

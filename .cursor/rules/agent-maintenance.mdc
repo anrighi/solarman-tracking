@@ -57,7 +57,7 @@ See `docs/INIT.md` for clone → env → docker → backfill → settings → ba
 ```bash
 docker compose up -d                        # base stack (app, worker, mysql)
 docker compose --profile full up -d         # + llm, telegram-bot
-docker compose --profile backup up -d       # + scheduled backup to Google Drive
+docker compose --profile backup up -d       # + scheduled backup to Cubbit DS3
 pnpm run dev                                # local dev (outside Docker)
 pnpm run test
 pnpm run sync:once

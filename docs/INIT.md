@@ -72,7 +72,7 @@ If grid columns are null, check `energy_samples_raw` (source `realtime`) — the
 
 ## 7. Backup (recommended)
 
-See [`docs/BACKUP.md`](BACKUP.md) for Google Drive setup via rclone.
+See [`docs/BACKUP.md`](BACKUP.md) for Cubbit DS3 setup via rclone.
 
 ```bash
 pnpm run db:dump

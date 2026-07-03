@@ -1,4 +1,19 @@
-# Database backup and Google Drive sync
+# Database backup and Cubbit DS3 sync
+
+## Backup policy
+
+| Item | Value |
+|------|-------|
+| Schedule | Daily at **03:00 Europe/Rome** |
+| Type | Full MySQL dump + `app_config.json` |
+| Local retention | **7 days** (`backup_data` volume) |
+| Remote retention | **30 days** on Cubbit (`solar-tracking-app/backups/`) |
+| Missing-backup threshold | **26 hours** (configurable in Settings) |
+| RPO | 24 hours |
+| RTO | ~15–30 minutes |
+| Not backed up | `.env` secrets |
+
+Pruning runs after each scheduled backup. Failed zero-byte `.sql` files are removed. `app_config.json` is always overwritten with the latest export.
 
 ## Persistence model
 
@@ -6,66 +21,90 @@ MySQL data is stored in the Docker named volume `mysql_data`. Data survives cont
 
 **Destructive command:** `docker compose down -v` removes the volume and all data.
 
-## Local backup
+## Settings UI
+
+Open **Impostazioni → Backup → Gestisci backup** (`/settings/backup`):
+
+- Health status (OK / missing / last run failed)
+- Backup history from `backup_runs` table
+- **Esegui backup ora** — manual backup
+- **Ripristina** — destructive restore with confirmation (`RIPRISTINA`)
+
+Tune missing-backup threshold and Telegram alerts under **Impostazioni → Backup**.
+
+## Local backup (CLI)
 
 ```bash
 pnpm run db:dump
+pnpm run backup:run
 ```
 
 Creates in `backups/`:
 
-- `solar_tracking_YYYYMMDD_HHmm.sql.gz` — full MySQL dump
-- `app_config.json` — exported application config from DB
+- `solar_tracking_YYYYMMDD_HHmm.sql.gz`
+- `app_config.json`
 
-## Restore
+## Restore (CLI)
 
 ```bash
 pnpm run db:restore backups/solar_tracking_20260703_1200.sql.gz
 ```
 
-## Google Drive via rclone
-
-### 1. Install rclone
+Stop the sync worker before restoring:
 
 ```bash
-brew install rclone   # macOS
+docker compose stop worker
+pnpm run db:restore backups/solar_tracking_20260703_1200.sql.gz
+docker compose start worker
 ```
 
-### 2. Configure Google Drive remote
+## Restore verification test
 
 ```bash
-rclone config
-# Name: gdrive
-# Storage: drive
-# Follow OAuth flow
+docker compose stop worker
+pnpm run db:restore:test
+docker compose start worker
 ```
 
-### 3. Manual upload
+Inserts a sentinel row, restores from a fresh dump, and verifies counts match.
 
-```bash
-pnpm run db:dump
-rclone copy backups/ gdrive:solar-tracking/backups/
-```
+## Cubbit DS3 via rclone
 
-### 4. Scheduled backup (Docker profile)
+[Cubbit DS3](https://www.cubbit.io/ds3-cloud) is S3-compatible. See [Cubbit rclone docs](https://docs.cubbit.io/integrations/rclone).
+
+### Environment variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CUBBIT_ACCESS_KEY_ID` | — | API access key |
+| `CUBBIT_SECRET_ACCESS_KEY` | — | API secret key |
+| `CUBBIT_ENDPOINT` | `s3.cubbit.eu` | S3 endpoint |
+| `CUBBIT_REGION` | `eu-west-1` | S3 region |
+| `CUBBIT_BUCKET` | `solar-tracking-app` | Target bucket |
+| `CUBBIT_BACKUP_PREFIX` | `backups` | Folder prefix |
+| `BACKUP_SCHEDULE_TZ` | `Europe/Rome` | Schedule timezone |
+| `BACKUP_SCHEDULE_HOUR` | `3` | Daily backup hour |
+| `BACKUP_RETENTION_DAYS_LOCAL` | `7` | Local dump retention |
+| `BACKUP_RETENTION_DAYS_REMOTE` | `30` | Cubbit dump retention |
+
+App config (Settings):
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `backup.maxAgeHours` | `26` | Missing-backup threshold |
+| `backup.alertOnMissing` | `true` | Telegram alert when backup is overdue |
+
+### Scheduled backup (Docker)
 
 ```bash
 docker compose --profile backup up -d
 ```
 
-The `backup` service runs on a schedule (default: daily at 03:00), dumps the DB, and syncs `backups/` to the configured rclone remote.
-
-Environment variables (in `.env`):
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `RCLONE_REMOTE` | `gdrive:solar-tracking/backups` | rclone remote path |
-| `BACKUP_CRON` | `0 3 * * *` | cron schedule inside container |
-
-### 5. Restore from Google Drive
+### Restore from Cubbit (CLI)
 
 ```bash
-rclone copy gdrive:solar-tracking/backups/ ./backups-restore/
+rclone copy cubbit:solar-tracking-app/backups/ ./backups-restore/ \
+  --include 'solar_tracking_*.sql.gz'
 pnpm run db:restore ./backups-restore/solar_tracking_YYYYMMDD_HHmm.sql.gz
 ```
 
@@ -73,6 +112,6 @@ pnpm run db:restore ./backups-restore/solar_tracking_YYYYMMDD_HHmm.sql.gz
 
 | Asset | Method |
 |-------|--------|
-| MySQL data | `db:dump` |
+| MySQL data | `db:dump` / backup service |
 | App config | included in `app_config.json` export |
 | Env secrets | **not** in backups — keep `.env` safe separately |

@@ -23,7 +23,7 @@
   - [x] F7 Checkpoint backfill (`sync:backfill:full`)
   - [x] F9 Historical battery tracking
   - [x] F10 Telegram battery alerts
-  - [x] F8 DB backup + Google Drive
+  - [x] F8 DB backup + Cubbit DS3
   - [x] F2 station grid/battery-split minute mapping + English DB columns
   - [ ] F1 Day/week/month/year aggregates
   - [ ] Configure real Solarman credentials in `.env`
@@ -42,7 +42,7 @@
 | F5 | Weather-based forecast | 4 | not_started | [F5-forecast.md](features/F5-forecast.md) |
 | F6 | Telegram daily recap | 3 | not_started | [F6-telegram-recap.md](features/F6-telegram-recap.md) |
 | F7 | Checkpoint backfill | 1 | done | [F7-backfill-checkpoints.md](features/F7-backfill-checkpoints.md) |
-| F8 | DB backup + Google Drive | 0+1 | done | [F8-backup.md](features/F8-backup.md) |
+| F8 | DB backup + Cubbit DS3 | 0+1 | done | [F8-backup.md](features/F8-backup.md) |
 | F9 | Battery dashboard (historical) | 2 | done | [F9-battery-dashboard.md](features/F9-battery-dashboard.md) |
 | F10 | Telegram battery alerts | 3 | done | [F10-battery-alerts.md](features/F10-battery-alerts.md) |
 | F11 | Config control panel | 0+2 | done | [F11-config-panel.md](features/F11-config-panel.md) |
@@ -70,11 +70,11 @@
 
 | Date | Agent | Phase | Done | Next step | Blocker |
 |------|-------|-------|------|-----------|---------|
+| 2026-07-03 | Cursor | 0+1 | F8 backup policy, retention, `/settings/backup`, restore test, missing-backup alert | F1 aggregates + live Solarman validation | None |
 | 2026-07-03 | Cursor | docs | F13 CI spec: ESLint, Prettier, typecheck, Vitest, build in GitHub Actions | F1 aggregates + live Solarman validation | None |
 | 2026-07-03 | Cursor | 1+2 | F2 extended: station grid import/export, battery charge/discharge, English DB columns, dashboard KPIs | F1 aggregates + live Solarman validation | None |
 | 2026-07-03 | Cursor | docs | F12 customizable reports spec (builder UI, time frame, metric blocks) | F1 aggregates + live Solarman validation | None |
 | 2026-07-03 | Cursor | 1–3 | F7–F11: config panel, checkpoint backfill, battery dashboard, Telegram alerts, backup | F1 aggregates + live Solarman validation | None |
-| 2026-07-03 | Cursor | 1+2 | Phase 1–2 cleanup, logical commits, schema/mapping dedupe | Aggregates (F1) | None |
 
 ## Useful commands
 
@@ -87,6 +87,7 @@ pnpm run sync:backfill          # last 7 days (default)
 pnpm run sync:backfill:full     # checkpoint-driven full backfill
 pnpm run sync:worker
 pnpm run db:dump
+pnpm run db:restore:test
 pnpm run dev
 ```
 
