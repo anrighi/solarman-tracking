@@ -1,19 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { SettingsPanel } from '@/features/settings/components/settings-panel'
-import { getAppConfig } from '@/features/settings/server/get-app-config'
+import { SettingsLayout } from '@/features/settings/components/settings-layout'
 
 export const Route = createFileRoute('/settings')({
-  loader: () => getAppConfig(),
-  component: SettingsPage,
+  component: SettingsLayoutPage,
 })
 
-function SettingsPage() {
-  const config = Route.useLoaderData()
-
+function SettingsLayoutPage() {
   return (
     <main className="min-h-screen bg-slate-100 p-6">
-      <SettingsPanel config={config} />
+      <SettingsLayout />
     </main>
   )
 }

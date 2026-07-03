@@ -1,27 +1,20 @@
 #!/bin/sh
 set -e
 
-INTERVAL_SECONDS="${BACKUP_INTERVAL_SECONDS:-86400}"
-RCLONE_REMOTE="${RCLONE_REMOTE:-gdrive:solar-tracking/backups}"
-
-echo "[backup] interval: ${INTERVAL_SECONDS}s"
-echo "[backup] remote: $RCLONE_REMOTE"
+echo "[backup] schedule: ${BACKUP_SCHEDULE_HOUR:-3}:00 ${BACKUP_SCHEDULE_TZ:-Europe/Rome}"
+echo "[backup] remote: $(BUCKET="${CUBBIT_BUCKET:-solar-tracking-app}"; PREFIX="${CUBBIT_BACKUP_PREFIX:-backups}"; echo "${RCLONE_REMOTE:-cubbit:${BUCKET}/${PREFIX}}")"
 
 run_backup() {
   echo "[backup] $(date -u +%Y-%m-%dT%H:%M:%SZ) starting dump..."
-  pnpm run db:dump
-  if command -v rclone >/dev/null 2>&1; then
-    rclone copy /app/backups/ "$RCLONE_REMOTE"
-    echo "[backup] uploaded to $RCLONE_REMOTE"
-  else
-    echo "[backup] rclone not found — local dump only"
-  fi
+  pnpm tsx --env-file=.env scripts/backup-run.ts scheduled
+  sh scripts/backup-prune.sh
 }
 
 run_backup
 
 while true; do
-  echo "[backup] sleeping ${INTERVAL_SECONDS}s until next run"
-  sleep "$INTERVAL_SECONDS"
+  SLEEP_SECONDS="$(pnpm tsx --env-file=.env scripts/backup-sleep-seconds.ts)"
+  echo "[backup] sleeping ${SLEEP_SECONDS}s until next scheduled run"
+  sleep "$SLEEP_SECONDS"
   run_backup
 done

@@ -1,8 +1,8 @@
 #!/usr/bin/env tsx
 
 import { getConfig } from '@/lib/config/service'
+import { runBackupAlerts } from '@/features/backup/run-backup-alerts'
 import { runBatteryAlerts } from '@/features/alerts/run-battery-alerts'
-import { closePool } from '@/server/db/connection'
 import { syncSolarmanMinute } from '@/server/jobs/sync-solarman'
 
 async function runLoop() {
@@ -26,6 +26,18 @@ async function runLoop() {
 
       if (alertResult.errors.length > 0) {
         console.error(`[sync:worker] errori alert: ${alertResult.errors.join(', ')}`)
+      }
+
+      const backupAlertResult = await runBackupAlerts()
+
+      if (backupAlertResult.sent > 0) {
+        console.log(`[sync:worker] alert backup inviati: ${backupAlertResult.sent}`)
+      }
+
+      if (backupAlertResult.errors.length > 0) {
+        console.error(
+          `[sync:worker] errori alert backup: ${backupAlertResult.errors.join(', ')}`,
+        )
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)

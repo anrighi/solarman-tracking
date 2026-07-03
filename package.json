@@ -13,7 +13,9 @@
     "sync:backfill:full": "tsx --env-file=.env scripts/backfill-full.ts",
     "sync:worker": "tsx --env-file=.env scripts/sync-worker.ts",
     "db:dump": "tsx --env-file=.env scripts/db-dump.ts",
-    "db:restore": "tsx --env-file=.env scripts/db-restore.ts"
+    "db:restore": "tsx --env-file=.env scripts/db-restore.ts",
+    "db:restore:test": "tsx --env-file=.env scripts/backup-restore-test.ts",
+    "backup:run": "tsx --env-file=.env scripts/backup-run.ts manual"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",

@@ -51,6 +51,13 @@ const chartSchema = z
   })
   .default({})
 
+const backupSchema = z
+  .object({
+    maxAgeHours: z.number().min(1).max(168).default(26),
+    alertOnMissing: z.boolean().default(true),
+  })
+  .default({})
+
 export const appConfigSchema = z.object({
   sync: syncSchema,
   backfill: backfillSchema,
@@ -58,6 +65,7 @@ export const appConfigSchema = z.object({
   telegram: telegramSchema,
   dashboard: dashboardSchema,
   chart: chartSchema,
+  backup: backupSchema,
 })
 
 export type AppConfig = z.infer<typeof appConfigSchema>

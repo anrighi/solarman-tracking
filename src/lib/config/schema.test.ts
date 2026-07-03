@@ -13,6 +13,8 @@ describe('appConfigSchema', () => {
       'consumption',
       'soc',
     ])
+    expect(defaultAppConfig.backup.maxAgeHours).toBe(26)
+    expect(defaultAppConfig.backup.alertOnMissing).toBe(true)
   })
 
   it('rejects invalid interval', () => {

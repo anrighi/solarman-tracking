@@ -1,4 +1,14 @@
-FROM node:24-alpine
+FROM node:24-bookworm-slim
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends default-mysql-client gzip ca-certificates curl unzip \
+  && curl -fsSL "https://downloads.rclone.org/rclone-current-linux-$(dpkg --print-architecture).zip" -o /tmp/rclone.zip \
+  && unzip -q /tmp/rclone.zip -d /tmp \
+  && install /tmp/rclone-*-linux-*/rclone /usr/local/bin/rclone \
+  && rm -rf /tmp/rclone* \
+  && apt-get purge -y curl unzip \
+  && apt-get autoremove -y \
+  && rm -rf /var/lib/apt/lists/*
 
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 ENV PNPM_HOME=/pnpm

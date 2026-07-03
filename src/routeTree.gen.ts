@@ -11,6 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SettingsIndexRouteImport } from './routes/settings.index'
+import { Route as SettingsSyncRouteImport } from './routes/settings.sync'
+import { Route as SettingsNotificationsRouteImport } from './routes/settings.notifications'
+import { Route as SettingsDashboardRouteImport } from './routes/settings.dashboard'
+import { Route as SettingsBackupRouteImport } from './routes/settings.backup'
 import { Route as ApiWebhooksBatteryRouteImport } from './routes/api/webhooks/battery'
 
 const SettingsRoute = SettingsRouteImport.update({
@@ -23,6 +28,31 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsIndexRoute = SettingsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsSyncRoute = SettingsSyncRouteImport.update({
+  id: '/sync',
+  path: '/sync',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsNotificationsRoute = SettingsNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsDashboardRoute = SettingsDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsBackupRoute = SettingsBackupRouteImport.update({
+  id: '/backup',
+  path: '/backup',
+  getParentRoute: () => SettingsRoute,
+} as any)
 const ApiWebhooksBatteryRoute = ApiWebhooksBatteryRouteImport.update({
   id: '/api/webhooks/battery',
   path: '/api/webhooks/battery',
@@ -31,31 +61,69 @@ const ApiWebhooksBatteryRoute = ApiWebhooksBatteryRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/settings': typeof SettingsRoute
+  '/settings': typeof SettingsRouteWithChildren
+  '/settings/backup': typeof SettingsBackupRoute
+  '/settings/dashboard': typeof SettingsDashboardRoute
+  '/settings/notifications': typeof SettingsNotificationsRoute
+  '/settings/sync': typeof SettingsSyncRoute
+  '/settings/': typeof SettingsIndexRoute
   '/api/webhooks/battery': typeof ApiWebhooksBatteryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/settings': typeof SettingsRoute
+  '/settings/backup': typeof SettingsBackupRoute
+  '/settings/dashboard': typeof SettingsDashboardRoute
+  '/settings/notifications': typeof SettingsNotificationsRoute
+  '/settings/sync': typeof SettingsSyncRoute
+  '/settings': typeof SettingsIndexRoute
   '/api/webhooks/battery': typeof ApiWebhooksBatteryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/settings': typeof SettingsRoute
+  '/settings': typeof SettingsRouteWithChildren
+  '/settings/backup': typeof SettingsBackupRoute
+  '/settings/dashboard': typeof SettingsDashboardRoute
+  '/settings/notifications': typeof SettingsNotificationsRoute
+  '/settings/sync': typeof SettingsSyncRoute
+  '/settings/': typeof SettingsIndexRoute
   '/api/webhooks/battery': typeof ApiWebhooksBatteryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/settings' | '/api/webhooks/battery'
+  fullPaths:
+    | '/'
+    | '/settings'
+    | '/settings/backup'
+    | '/settings/dashboard'
+    | '/settings/notifications'
+    | '/settings/sync'
+    | '/settings/'
+    | '/api/webhooks/battery'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/settings' | '/api/webhooks/battery'
-  id: '__root__' | '/' | '/settings' | '/api/webhooks/battery'
+  to:
+    | '/'
+    | '/settings/backup'
+    | '/settings/dashboard'
+    | '/settings/notifications'
+    | '/settings/sync'
+    | '/settings'
+    | '/api/webhooks/battery'
+  id:
+    | '__root__'
+    | '/'
+    | '/settings'
+    | '/settings/backup'
+    | '/settings/dashboard'
+    | '/settings/notifications'
+    | '/settings/sync'
+    | '/settings/'
+    | '/api/webhooks/battery'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  SettingsRoute: typeof SettingsRoute
+  SettingsRoute: typeof SettingsRouteWithChildren
   ApiWebhooksBatteryRoute: typeof ApiWebhooksBatteryRoute
 }
 
@@ -75,6 +143,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/': {
+      id: '/settings/'
+      path: '/'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof SettingsIndexRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/sync': {
+      id: '/settings/sync'
+      path: '/sync'
+      fullPath: '/settings/sync'
+      preLoaderRoute: typeof SettingsSyncRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/notifications': {
+      id: '/settings/notifications'
+      path: '/notifications'
+      fullPath: '/settings/notifications'
+      preLoaderRoute: typeof SettingsNotificationsRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/dashboard': {
+      id: '/settings/dashboard'
+      path: '/dashboard'
+      fullPath: '/settings/dashboard'
+      preLoaderRoute: typeof SettingsDashboardRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/backup': {
+      id: '/settings/backup'
+      path: '/backup'
+      fullPath: '/settings/backup'
+      preLoaderRoute: typeof SettingsBackupRouteImport
+      parentRoute: typeof SettingsRoute
+    }
     '/api/webhooks/battery': {
       id: '/api/webhooks/battery'
       path: '/api/webhooks/battery'
@@ -85,9 +188,29 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface SettingsRouteChildren {
+  SettingsBackupRoute: typeof SettingsBackupRoute
+  SettingsDashboardRoute: typeof SettingsDashboardRoute
+  SettingsNotificationsRoute: typeof SettingsNotificationsRoute
+  SettingsSyncRoute: typeof SettingsSyncRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
+}
+
+const SettingsRouteChildren: SettingsRouteChildren = {
+  SettingsBackupRoute: SettingsBackupRoute,
+  SettingsDashboardRoute: SettingsDashboardRoute,
+  SettingsNotificationsRoute: SettingsNotificationsRoute,
+  SettingsSyncRoute: SettingsSyncRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
+}
+
+const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
+  SettingsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  SettingsRoute: SettingsRoute,
+  SettingsRoute: SettingsRouteWithChildren,
   ApiWebhooksBatteryRoute: ApiWebhooksBatteryRoute,
 }
 export const routeTree = rootRouteImport

@@ -51,5 +51,6 @@ function deepMerge(current: AppConfig, partial: Partial<AppConfig>): AppConfig {
     telegram: { ...current.telegram, ...partial.telegram },
     dashboard: { ...current.dashboard, ...partial.dashboard },
     chart: { ...current.chart, ...partial.chart },
+    backup: { ...current.backup, ...partial.backup },
   }
 }
