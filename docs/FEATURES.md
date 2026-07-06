@@ -1,6 +1,6 @@
 # Solar Tracking — Feature registry
 
-> Last updated: 2026-07-03 | Active phase: 2 | Agent: Cursor
+> Last updated: 2026-07-06 | Active phase: 3 | Agent: Cursor
 
 ## Global status
 
@@ -8,7 +8,7 @@
 |-------|------|--------|------------|
 | 0 | Bootstrap | done | 100% |
 | 1 | Solarman ingestion | done | 100% |
-| 2 | Dashboard | in_progress | 80% |
+| 2 | Dashboard | done | 100% |
 | 3 | Telegram + AI | in_progress | 15% |
 | 4 | Weather + Forecast | pending | 0% |
 | 5 | Custom reports | pending | 0% |
@@ -16,18 +16,13 @@
 
 ## Active phase — what to do now
 
-- **Current goal:** F1 aggregates + live Solarman validation
-- **Prerequisites verified:** MySQL schema, Solarman client, sync jobs, Recharts dashboard, station grid fields
-- **Remaining tasks:**
-  - [x] F11 Config panel (`app_config` + Settings UI)
-  - [x] F7 Checkpoint backfill (`sync:backfill:full`)
-  - [x] F9 Historical battery tracking
-  - [x] F10 Telegram battery alerts
-  - [x] F8 DB backup + Cubbit DS3
-  - [x] F2 station grid/battery-split minute mapping + English DB columns
-  - [ ] F1 Day/week/month/year aggregates
-  - [ ] Configure real Solarman credentials in `.env`
-  - [ ] Validate live sync with real plant
+- **Current goal:** Phase 3 — F3 consumption classification + F6 Telegram daily recap
+- **Prerequisites verified:** Dashboard KPIs, live Solarman sync, minute backfill, config panel
+- **Remaining tasks (phase 3):**
+  - [ ] F3 Consumption classification (Telegram + local LLM)
+  - [ ] F6 Telegram daily energy recap
+- **Deferred from phase 2:**
+  - F1 year preset, `energy_totals` table, billing-grade grid import (revisit when billing data available)
 - **Open blockers:** None
 
 ## Feature index
@@ -35,7 +30,7 @@
 | ID | Feature | Phase | Status | Detail |
 |----|---------|-------|--------|--------|
 | F0 | Bootstrap, Docker, env | 0 | done | [F0-bootstrap.md](features/F0-bootstrap.md) |
-| F1 | Day/week/month/year totals | 2 | not_started | [F1-aggregates.md](features/F1-aggregates.md) |
+| F1 | Day/week/month totals (minute rollups) | 2 | done | [F1-aggregates.md](features/F1-aggregates.md) |
 | F2 | Minute series | 1+2 | done | [F2-minute-series.md](features/F2-minute-series.md) |
 | F3 | Consumption classification (Telegram + AI) | 3 | not_started | [F3-classification.md](features/F3-classification.md) |
 | F4 | Historical energy vs weather | 4 | not_started | [F4-weather-history.md](features/F4-weather-history.md) |
@@ -65,16 +60,19 @@
 | 2026-07-03 | English DB/code identifiers, Italian UI only | Consistent dev naming; UI labels stay Italian | Italian column names in schema |
 | 2026-07-03 | Report defs in DB, not app_config | User-created templates vs global tunables | File-based report YAML |
 | 2026-07-03 | ESLint + Prettier + GHA ci.yml | Standard TS/React tooling; no secrets in CI | Biome-only; Docker-based CI |
+| 2026-07-06 | F1 minute rollups for dashboard KPIs | `compare:totals` validated ~5% on production/export; sufficient for monitoring | Daily API + `energy_totals` table |
+| 2026-07-06 | 5-min sample bucket normalization | Prevents realtime + history duplicate rows in same interval | Millisecond-precision unique key only |
+| 2026-07-06 | Grid import billing accuracy deferred | Low value until billing statements; minute `buyValue` mismatch at small values | Block phase 2 on daily API |
 
 ## Handoff log (last 5 entries)
 
 | Date | Agent | Phase | Done | Next step | Blocker |
 |------|-------|-------|------|-----------|---------|
-| 2026-07-03 | Cursor | 2 | Dashboard period nav: day/week/month presets, anchor date, first-data boundary | F1 aggregates + live Solarman validation | None |
-| 2026-07-03 | Cursor | 0+1 | F8 backup policy, retention, `/settings/backup`, restore test, missing-backup alert | F1 aggregates + live Solarman validation | None |
-| 2026-07-03 | Cursor | docs | F13 CI spec: ESLint, Prettier, typecheck, Vitest, build in GitHub Actions | F1 aggregates + live Solarman validation | None |
-| 2026-07-03 | Cursor | 1+2 | F2 extended: station grid import/export, battery charge/discharge, English DB columns, dashboard KPIs | F1 aggregates + live Solarman validation | None |
-| 2026-07-03 | Cursor | docs | F12 customizable reports spec (builder UI, time frame, metric blocks) | F1 aggregates + live Solarman validation | None |
+| 2026-07-06 | Cursor | 2→3 | Phase 2 closed: F1 minute rollups, live sync validated, dedupe rule | F3 classification or F6 Telegram recap | None |
+| 2026-07-06 | Cursor | 1+2 | 5-min bucket normalization; `db:dedupe-samples` (134 rows) | Phase 2 sign-off | None |
+| 2026-07-06 | Cursor | 2 | `compare:totals` CLI vs Solarman daily API | F1 source decision | None |
+| 2026-07-03 | Cursor | 2 | Dashboard period nav: day/week/month presets | Phase 2 wrap-up | None |
+| 2026-07-03 | Cursor | 0+1 | F8 backup policy, `/settings/backup` | Phase 2 wrap-up | None |
 
 ## Useful commands
 
@@ -86,6 +84,8 @@ pnpm run sync:once
 pnpm run sync:backfill          # last 7 days (default)
 pnpm run sync:backfill:full     # checkpoint-driven full backfill
 pnpm run sync:worker
+pnpm run compare:totals
+pnpm run db:dedupe-samples
 pnpm run db:dump
 pnpm run db:restore:test
 pnpm run dev

@@ -47,6 +47,9 @@ pnpm run sync:backfill        # manual window backfill [days] [offset]
 pnpm run sync:backfill:full   # checkpoint-driven full backfill
 pnpm run sync:worker          # continuous sync loop (interval from app_config)
 
+pnpm run compare:totals       # validate minute rollups vs Solarman daily API
+pnpm run db:dedupe-samples    # normalize 5-min buckets and remove duplicates
+
 pnpm run db:dump              # MySQL dump + app_config JSON export
 pnpm run db:restore           # restore from backup
 ```

@@ -39,6 +39,13 @@ Handled in `normalizeStationPowerFields()`:
 4. If export still null, positive `wirePower` → export
 5. `chargePower` / `dischargePower` stored as positive watts
 
+## Timestamp normalization
+
+All samples are aligned to **5-minute buckets** before insert (`normalizeToSampleBucket` in `src/lib/solarman/sample-timestamp.ts`). Frame history uses exact boundaries (`:00.000`); realtime sync can arrive with sub-minute offsets — without normalization both would coexist as separate rows and inflate integration totals.
+
+- Upsert dedupes within the same batch by bucket
+- One-off cleanup: `pnpm run db:dedupe-samples`
+
 Grid fields may be null if the plant has no grid CT configured — check `energy_samples_raw` after first live sync.
 
 ## Migration
