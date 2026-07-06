@@ -37,6 +37,18 @@ export type SolarmanHistoryItem = {
   year?: number | null
   month?: number | null
   day?: number | null
+  generationValue?: number | null
+  useValue?: number | null
+  buyValue?: number | null
+  gridValue?: number | null
+}
+
+export type SolarmanDailyEnergy = {
+  date: string
+  producedKwh: number
+  consumedKwh: number
+  importedKwh: number
+  exportedKwh: number
 }
 
 export type SolarmanHistoryResponse = {

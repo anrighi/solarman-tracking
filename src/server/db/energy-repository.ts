@@ -1,6 +1,7 @@
 import type { ResultSetHeader, RowDataPacket } from 'mysql2/promise'
 
 import { withConnection } from '@/server/db/connection'
+import { normalizeToSampleBucket } from '@/lib/solarman/sample-timestamp'
 import type {
   EnergySampleInsert,
   EnergySampleRow,
@@ -21,8 +22,10 @@ export async function upsertEnergySamples(samples: EnergySampleInsert[]) {
     return 0
   }
 
+  const deduped = dedupeSamplesByBucket(samples)
+
   return withConnection(async (connection) => {
-    const values = samples.map((sample) => [
+    const values = deduped.map((sample) => [
       sample.stationId,
       sample.recordedAt,
       sample.productionW,
@@ -56,6 +59,18 @@ export async function upsertEnergySamples(samples: EnergySampleInsert[]) {
   })
 }
 
+function dedupeSamplesByBucket(samples: EnergySampleInsert[]) {
+  const byKey = new Map<string, EnergySampleInsert>()
+
+  for (const sample of samples) {
+    const recordedAt = normalizeToSampleBucket(sample.recordedAt)
+    const key = `${sample.stationId}:${recordedAt.getTime()}`
+    byKey.set(key, { ...sample, recordedAt })
+  }
+
+  return [...byKey.values()]
+}
+
 export async function saveRawPayload(input: {
   source: string
   stationId: number
@@ -74,6 +89,36 @@ export async function saveRawPayload(input: {
       ],
     )
   })
+}
+
+export async function countEnergySamplesByDay(input: {
+  stationId: number
+  from: Date
+  to: Date
+}) {
+  return withConnection(async (connection) => {
+    const [rows] = await connection.query<RowDataPacket[]>(
+      `SELECT DATE(recorded_at) AS day, COUNT(*) AS total
+       FROM energy_samples_minute
+       WHERE station_id = ? AND recorded_at >= ? AND recorded_at <= ?
+       GROUP BY DATE(recorded_at)
+       ORDER BY day ASC`,
+      [input.stationId, input.from, input.to],
+    )
+
+    return rows.map((row) => ({
+      day: formatSqlDate(row.day),
+      count: Number(row.total ?? 0),
+    }))
+  })
+}
+
+function formatSqlDate(value: unknown) {
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10)
+  }
+
+  return String(value).slice(0, 10)
 }
 
 export async function getEnergySamples(input: {

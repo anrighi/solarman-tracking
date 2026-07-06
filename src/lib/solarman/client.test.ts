@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 
 import {
   hashPassword,
+  kwhToWh,
+  mapDailyEnergyItem,
   mapHistoryItemsToSamples,
   mapRealtimeToSample,
 } from '@/lib/solarman/client'
@@ -70,6 +72,39 @@ describe('mapRealtimeToSample', () => {
   })
 })
 
+describe('mapDailyEnergyItem', () => {
+  it('mappa i totali giornalieri in kWh', () => {
+    const daily = mapDailyEnergyItem({
+      year: 2019,
+      month: 12,
+      day: 23,
+      generationValue: 1788,
+      useValue: 1608,
+      buyValue: 1608,
+      gridValue: 0,
+    })
+
+    expect(daily).toEqual({
+      date: '2019-12-23',
+      producedKwh: 1788,
+      consumedKwh: 1608,
+      importedKwh: 1608,
+      exportedKwh: 0,
+    })
+  })
+
+  it('ignora righe senza data', () => {
+    expect(mapDailyEnergyItem({ generationValue: 10 })).toBeNull()
+  })
+})
+
+describe('kwhToWh', () => {
+  it('converte kWh in Wh', () => {
+    expect(kwhToWh(12.3)).toBe(12300)
+    expect(kwhToWh(null)).toBe(0)
+  })
+})
+
 describe('mapHistoryItemsToSamples', () => {
   it('usa dateTime quando presente', () => {
     const [sample] = mapHistoryItemsToSamples({
@@ -108,6 +143,22 @@ describe('mapHistoryItemsToSamples', () => {
     })
 
     expect(sample?.recordedAt.toISOString()).toBe('2026-06-30T22:00:00.000Z')
+  })
+
+  it('normalizza realtime nello stesso bucket del frame', () => {
+    const sample = mapRealtimeToSample({
+      stationId: 42,
+      payload: {
+        success: true,
+        generationPower: 1200,
+        usePower: 800,
+        batterySoc: 55,
+        batteryPower: 400,
+        lastUpdateTime: 1_783_023_303,
+      },
+    })
+
+    expect(sample?.recordedAt.toISOString()).toBe('2026-07-02T20:15:00.000Z')
   })
 
   it('ignora righe senza timestamp', () => {

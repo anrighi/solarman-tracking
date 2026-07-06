@@ -1,8 +1,10 @@
 import { createHash } from 'node:crypto'
 
 import { normalizeStationPowerFields } from '@/lib/solarman/normalize'
+import { normalizeToSampleBucket } from '@/lib/solarman/sample-timestamp'
 import type {
   SolarmanClientConfig,
+  SolarmanDailyEnergy,
   SolarmanHistoryItem,
   SolarmanHistoryResponse,
   SolarmanRealtimeResponse,
@@ -137,7 +139,7 @@ export function mapRealtimeToSample(input: {
 
   return {
     stationId: input.stationId,
-    recordedAt,
+    recordedAt: normalizeToSampleBucket(recordedAt),
     productionW: input.payload.generationPower ?? null,
     consumptionW: input.payload.usePower ?? null,
     batterySoc: input.payload.batterySoc ?? null,
@@ -162,7 +164,7 @@ export function mapHistoryItemsToSamples(input: {
 
       return {
         stationId: input.stationId,
-        recordedAt,
+        recordedAt: normalizeToSampleBucket(recordedAt),
         productionW: item.generationPower ?? null,
         consumptionW: item.usePower ?? null,
         batterySoc: item.batterySoc ?? null,
@@ -205,6 +207,40 @@ function resolveHistoryTimestamp(item: SolarmanHistoryItem) {
   return new Date(Date.UTC(item.year, item.month - 1, item.day, 12, 0, 0))
 }
 
+export function kwhToWh(value: number | null | undefined) {
+  if (value === null || value === undefined) {
+    return 0
+  }
+
+  return value * 1000
+}
+
+export function formatDayKey(year: number, month: number, day: number) {
+  const monthStr = String(month).padStart(2, '0')
+  const dayStr = String(day).padStart(2, '0')
+  return `${year}-${monthStr}-${dayStr}`
+}
+
+export function mapDailyEnergyItem(item: SolarmanHistoryItem): SolarmanDailyEnergy | null {
+  if (!item.year || !item.month || !item.day) {
+    return null
+  }
+
+  return {
+    date: formatDayKey(item.year, item.month, item.day),
+    producedKwh: item.generationValue ?? 0,
+    consumedKwh: item.useValue ?? 0,
+    importedKwh: item.buyValue ?? 0,
+    exportedKwh: item.gridValue ?? 0,
+  }
+}
+
+export function mapDailyEnergyItems(items: SolarmanHistoryItem[]) {
+  return items
+    .map(mapDailyEnergyItem)
+    .filter((entry): entry is SolarmanDailyEnergy => entry !== null)
+}
+
 export function formatDay(date: Date) {
   return date.toISOString().slice(0, 10)
 }
@@ -213,4 +249,14 @@ export function addDays(date: Date, days: number) {
   const next = new Date(date)
   next.setUTCDate(next.getUTCDate() + days)
   return next
+}
+
+export function startOfUtcDay(date: Date) {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()))
+}
+
+export function utcDayBounds(dateKey: string) {
+  const day = startOfUtcDay(new Date(`${dateKey}T00:00:00.000Z`))
+  const end = new Date(day.getTime() + 24 * 60 * 60 * 1000 - 1)
+  return { from: day, to: end }
 }
