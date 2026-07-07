@@ -25,11 +25,12 @@ permissions:
   contents: read
 
 jobs:
-  sync:
+  validate:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      issues: ${{ github.event_name == 'pull_request' && 'read' || 'write' }}
+      issues: read
     steps:
       - uses: actions/checkout@v6
 
@@ -46,13 +47,32 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Validate issue sync (dry run)
-        if: github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
         run: bash scripts/sync-github-tasks.sh --dry-run
 
+  sync:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Sync manifest → GitHub Issues
-        if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
         run: bash scripts/sync-github-tasks.sh
