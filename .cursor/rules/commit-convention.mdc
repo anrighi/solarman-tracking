@@ -8,9 +8,11 @@ alwaysApply: true
 ## When a feature is completed
 
 1. Run `pnpm run test` and `pnpm run build` (if application code changed)
-2. Update the feature file in `docs/features/F*.md` (status → done)
-3. Update `docs/FEATURES.md` index and handoff log
-4. Commit with conventional format:
+2. Update `docs/features/F*.md` (`status` → `done`)
+3. Set matching `"status": "done"` in `scripts/github-tasks.manifest.json`
+4. Merge PR to `main` with `Closes #<issue>` in the body (CI syncs issue state)
+5. Update `docs/FEATURES.md` handoff log (and phase completion if applicable)
+6. Commit with conventional format:
 
 ```
 feat(scope): short description
@@ -19,6 +21,12 @@ feat(scope): short description
 ```
 
 Scopes: `config`, `sync`, `backfill`, `dashboard`, `alerts`, `backup`, `docs`, `db`
+
+## Branches and PRs
+
+- Feature branches: `phase-<n>/<id>-<slug>` (e.g. `phase-3/f3-classification`)
+- PRs target `main` and must include `Closes #N` for completed features
+- See `.cursor/rules/github-workflow.mdc` for the full checklist
 
 ## Examples
 
@@ -34,5 +42,5 @@ docs: restructure features per-file, add INIT and BACKUP guides
 ## Do not
 
 - Commit `.env`, `.env.local`, or backup dumps with secrets
-- Mark a feature done without updating its `docs/features/` file
+- Mark a feature done without updating `docs/features/`, `github-tasks.manifest.json`, and a merged PR with `Closes #N`
 - Mix unrelated features in one commit when they can be split logically

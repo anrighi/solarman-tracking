@@ -7,16 +7,17 @@ alwaysApply: true
 
 ## Before each session
 
-1. Read `docs/FEATURES.md` → **Active phase** section
-2. Read `AGENTS.md` for conventions and commands
-3. Verify `.env` (local) or `.env.docker` (container) from `.env.example`
-4. Run `pnpm run test` before invasive changes
+1. Read open [GitHub feature issues](https://github.com/anrighi/solarman-tracking/issues?q=is%3Aopen+is%3Aissue+label%3Afeature) and `docs/FEATURES.md` for phase context
+2. Follow `.cursor/rules/github-workflow.mdc` — verify issue, phase, spec, and branch before coding
+3. Read `AGENTS.md` for conventions and commands
+4. Verify `.env` (local) or `.env.docker` (container) from `.env.example`
+5. Run `pnpm run test` before invasive changes
 
 ## During work
 
-- Work only on the phase/feature indicated in `FEATURES.md`
+- Work only on the phase/feature indicated in `docs/FEATURES.md`, the linked GitHub issue, and your `phase-<n>/` branch
 - Use absolute imports (`@/...`), TypeScript strict
-- **UI text:** Italian | **Docs, README, TODO, rules, commits:** English
+- **UI text:** Italian | **Docs, README, tasks, rules, commits:** English
 - Feature-based structure: `src/features/<name>/`
 - Early return, minimal comments, small diffs
 - Mock external services (Solarman, Telegram, LLM, weather)
@@ -25,10 +26,13 @@ alwaysApply: true
 
 ## End of session
 
-1. Update feature status in `docs/features/F*.md` and `docs/FEATURES.md`
-2. Add a row to the **Handoff log** with a concrete next step
-3. Run `pnpm run test` and `pnpm run build` if application code changed
-4. Follow `commit-convention.mdc` when marking features complete
+1. Update the linked GitHub issue and feature spec in `docs/features/F*.md`
+2. Set `status` in `scripts/github-tasks.manifest.json` when a feature completes (CI syncs issues on merge to `main`)
+3. Update phase completion in `docs/FEATURES.md` when a phase closes
+4. Add a row to the **Handoff log** in `docs/FEATURES.md` with a concrete next step
+5. Open or update PR with `Closes #N`; merge via `main` (see `github-workflow.mdc`)
+6. Run `pnpm run test` and `pnpm run build` if application code changed
+7. Follow `commit-convention.mdc` when marking features complete
 
 ## Env and secrets
 
@@ -47,6 +51,8 @@ alwaysApply: true
 | 2 | Dashboard + aggregates + battery history |
 | 3 | Telegram + AI classification + battery alerts |
 | 4 | Weather + forecast |
+| 5 | Custom reports |
+| 0+ | CI, GitHub Pages demo (see GitHub Issues) |
 
 ## First-time setup
 

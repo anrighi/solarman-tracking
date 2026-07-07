@@ -49,8 +49,8 @@ skills:
 
 ## Regole per gli agenti (Solar Tracking)
 
-1. **Prima di codificare**: leggere `docs/FEATURES.md` e verificare la fase attiva.
-2. **Durante il lavoro**: aggiornare checkbox e stato feature (`in_progress`).
+1. **Prima di codificare**: issue GitHub aperta (label `feature`), fase attiva in `docs/FEATURES.md`, spec in `docs/features/F*.md`, regole in `github-workflow.mdc`.
+2. **Durante il lavoro**: branch `phase-<n>/<id>-<slug>`; PR con `Closes #N`; aggiornare manifest e spec al completamento.
 3. **A fine sessione**: compilare una riga nel **Handoff log** con prossimo passo concreto.
 4. **Non duplicare**: decisioni vanno in `FEATURES.md` (ADR) o nel codice, non sparsi in commenti.
 5. **Feature deferred**: marcare esplicitamente `deferred` con motivo (es. meteo rimandato a fase 4).

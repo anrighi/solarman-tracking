@@ -1,27 +1,22 @@
 # TODO — Solar Tracking
 
-Actionable backlog linked to feature IDs. See [`docs/FEATURES.md`](docs/FEATURES.md) for status.
+Track work on **GitHub Issues**: [open features](https://github.com/anrighi/solarman-tracking/issues?q=is%3Aopen+is%3Aissue+label%3Afeature)
 
-## In progress (phase 3)
+## Workflow
 
-- [ ] F3 — Consumption classification via Telegram + local AI
-- [ ] F6 — Daily/on-demand Telegram energy recap
+1. Pick issue → read `docs/features/F*.md`
+2. Branch: `phase-3/f3-classification` (see `.cursor/rules/github-workflow.mdc`)
+3. PR to `main` with `Closes #N`
+4. On merge, CI syncs `scripts/github-tasks.manifest.json` → issues
 
-## Deferred
+## Current focus (phase 3)
 
-- [ ] F1 — Year period preset + `energy_totals` / daily API (when billing data available; grid import accuracy)
-- [ ] F13 — Static analysis + GitHub CI
+- [ ] F3 — [issue](https://github.com/anrighi/solarman-tracking/issues?q=%5BF3%5D)
+- [ ] F6 — [issue](https://github.com/anrighi/solarman-tracking/issues?q=%5BF6%5D)
 
-## Upcoming (phase 4)
+Registry: [`docs/FEATURES.md`](docs/FEATURES.md)
 
-- [ ] F4 — Historical energy vs weather comparison
-- [ ] F5 — Weather-based production forecast
+## Future (discoverability)
 
-## Completed
-
-- [x] Phase 2 — Dashboard (F1 minute rollups, F9 battery, F11 config, live Solarman validation)
-- [x] F7 — Checkpoint-driven recursive backfill
-- [x] F8 — DB backup + Cubbit DS3
-- [x] F10 — Telegram battery status alerts
-- [x] 5-min sample bucket normalization + `db:dedupe-samples`
-- [x] `compare:totals` validation CLI
+- [ ] F14 — [Published demo on GitHub Pages](https://github.com/anrighi/solarman-tracking/issues?q=%5BF14%5D)
+- [ ] F15 — [Documentation site](https://github.com/anrighi/solarman-tracking/issues?q=%5BF15%5D) (setup, user guide, developer reference)

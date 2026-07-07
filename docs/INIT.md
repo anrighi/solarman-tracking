@@ -3,8 +3,8 @@
 ## 1. Clone and install
 
 ```bash
-git clone <repo-url> solar-tracking
-cd solar-tracking
+git clone https://github.com/anrighi/solarman-tracking.git
+cd solarman-tracking
 pnpm install
 ```
 

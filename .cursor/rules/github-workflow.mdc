@@ -1,0 +1,55 @@
+---
+description: GitHub Issues workflow — branches, PRs, and issue sync
+alwaysApply: true
+---
+
+# GitHub workflow
+
+Issues are the collaboration tracker. Specs stay in `docs/features/`. Status source for automation: `scripts/github-tasks.manifest.json`.
+
+## Before starting a feature
+
+1. **Pick an issue** — open [feature issues](https://github.com/anrighi/solarman-tracking/issues?q=is%3Aopen+is%3Aissue+label%3Afeature); title must match `[Fx] …`
+2. **Check phase** — issue phase label must match the **active phase** in `docs/FEATURES.md` (do not skip phases)
+3. **Read the spec** — linked `docs/features/F*.md`; confirm acceptance criteria and files
+4. **Check blockers** — no duplicate open PR for the same issue; no open blocker issues linked
+5. **Claim work** — assign yourself or comment on the issue: scope + branch name you will use
+6. **Branch from `main`** — see branch naming below; never commit feature work directly to `main`
+
+## Branch naming
+
+Format: `phase-<n>/<id>-<short-slug>`
+
+| Phase | Branch prefix | Example |
+|-------|---------------|---------|
+| 0 | `phase-0/` | `phase-0/f0-bootstrap` |
+| 1 | `phase-1/` | `phase-1/f7-backfill` |
+| 2 | `phase-2/` | `phase-2/f9-battery-dashboard` |
+| 3 | `phase-3/` | `phase-3/f3-classification` |
+| 4 | `phase-4/` | `phase-4/f4-weather-history` |
+| 5 | `phase-5/` | `phase-5/f12-reports` |
+| 0+ (cross-cutting) | `phase-0-plus/` | `phase-0-plus/f13-ci-quality` |
+
+- One feature per branch (preferred); multiple issues only if tightly coupled and agreed in issue comments
+- Short slug: lowercase, hyphens, matches feature id (e.g. `f6-telegram-recap`)
+
+## Pull requests
+
+1. **Target branch:** `main`
+2. **Link issues** — PR body must include `Closes #<number>` (or `Fixes #`) for each completed feature issue
+3. **Title:** conventional commit style, e.g. `feat(alerts): telegram battery threshold (F10)`
+4. **Before merge:** `pnpm run test` (+ `pnpm run build` if app code changed)
+5. **On completion:** set `status` → `done` in `docs/features/F*.md` and in `scripts/github-tasks.manifest.json`; merge triggers issue sync on `main`
+
+## Issue sync (automation + local)
+
+- **CI:** push to `main` runs `.github/workflows/sync-github-tasks.yml` when manifest or feature docs change
+- **Local:** `pnpm run sync:github-tasks` after editing `scripts/github-tasks.manifest.json`
+- Do not edit synced issue titles (`[Fx]` prefix); update manifest + spec instead
+
+## End of feature
+
+1. Update `docs/features/F*.md` (`Status` → `done`)
+2. Set matching `status` → `done` in `scripts/github-tasks.manifest.json`
+3. Open PR with `Closes #N`; merge to `main`
+4. Update `docs/FEATURES.md` handoff log (and phase row if phase closes)
