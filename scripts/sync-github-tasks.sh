@@ -14,7 +14,15 @@ if ! command -v jq >/dev/null 2>&1; then
   exit 1
 fi
 
-if ! gh auth status >/dev/null 2>&1; then
+is_ci() {
+  [[ "${GITHUB_ACTIONS:-}" == "true" ]]
+}
+
+has_gh_token() {
+  [[ -n "${GH_TOKEN:-}" || -n "${GITHUB_TOKEN:-}" ]]
+}
+
+if ! is_ci && ! has_gh_token && ! gh auth status >/dev/null 2>&1; then
   echo "Run: gh auth login" >&2
   exit 1
 fi
@@ -51,6 +59,15 @@ is_issue_number() {
 }
 
 verify_repo_access() {
+  if is_ci || has_gh_token; then
+    if ! gh api "repos/$REPO" --jq .full_name >/dev/null 2>&1; then
+      echo "Cannot access repo: $REPO (token auth)" >&2
+      exit 1
+    fi
+    echo "Token auth → $REPO" >&2
+    return
+  fi
+
   local login=""
   if ! login="$(gh api user --jq .login 2>/dev/null)"; then
     echo "GitHub auth failed. Run: gh auth login" >&2
@@ -225,23 +242,27 @@ while IFS= read -r feature; do
 done < <(jq -c '.features[]' "$MANIFEST")
 
 PROJECT_NUMBER=""
-if PROJECT_NUMBER="$(gh project list --owner "$PROJECT_OWNER" --format json --limit 100 2>/dev/null | jq -r --arg t "$PROJECT_TITLE" '.projects[] | select(.title == $t) | .number' | head -1)" && [[ -n "$PROJECT_NUMBER" ]]; then
-  echo "Using existing project #$PROJECT_NUMBER — $PROJECT_TITLE" >&2
-elif PROJECT_URL="$(gh project create --owner "$PROJECT_OWNER" --title "$PROJECT_TITLE" --format json --jq .url 2>/dev/null)"; then
-  PROJECT_NUMBER="${PROJECT_URL##*/}"
-  echo "Created project: $PROJECT_URL" >&2
+if is_ci; then
+  echo "Skipped GitHub Project sync in CI (GITHUB_TOKEN has no project scope)" >&2
 else
-  echo "Warning: skipped GitHub Project sync (needs gh with project support + project scope)" >&2
-fi
+  if PROJECT_NUMBER="$(gh project list --owner "$PROJECT_OWNER" --format json --limit 100 2>/dev/null | jq -r --arg t "$PROJECT_TITLE" '.projects[] | select(.title == $t) | .number' | head -1)" && [[ -n "$PROJECT_NUMBER" ]]; then
+    echo "Using existing project #$PROJECT_NUMBER — $PROJECT_TITLE" >&2
+  elif PROJECT_URL="$(gh project create --owner "$PROJECT_OWNER" --title "$PROJECT_TITLE" --format json --jq .url 2>/dev/null)"; then
+    PROJECT_NUMBER="${PROJECT_URL##*/}"
+    echo "Created project: $PROJECT_URL" >&2
+  else
+    echo "Warning: skipped GitHub Project sync (needs gh with project support + project scope)" >&2
+  fi
 
-GH_USER="$(gh api user --jq .login)"
-for num in "${ISSUE_NUMBERS[@]}"; do
-  sync_project "$num"
-done
+  GH_USER="$(gh api user --jq .login)"
+  for num in "${ISSUE_NUMBERS[@]}"; do
+    sync_project "$num"
+  done
+fi
 
 echo ""
 echo "Done."
 echo "Issues:  https://github.com/$REPO/issues?q=is%3Aissue+label%3Afeature"
-if [[ -n "$PROJECT_NUMBER" ]]; then
+if [[ -n "${GH_USER:-}" && -n "$PROJECT_NUMBER" ]]; then
   echo "Project: https://github.com/users/$GH_USER/projects/$PROJECT_NUMBER"
 fi
