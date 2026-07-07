@@ -1,0 +1,125 @@
+{
+  "repo": "anrighi/solarman-tracking",
+  "projectTitle": "Solar Tracking Roadmap",
+  "features": [
+    {
+      "id": "F0",
+      "title": "Bootstrap, Docker, env",
+      "phase": "0",
+      "status": "done",
+      "spec": "docs/features/F0-bootstrap.md"
+    },
+    {
+      "id": "F1",
+      "title": "Day/week/month totals (minute rollups)",
+      "phase": "2",
+      "status": "done",
+      "spec": "docs/features/F1-aggregates.md"
+    },
+    {
+      "id": "F2",
+      "title": "Minute series",
+      "phase": "1",
+      "status": "done",
+      "spec": "docs/features/F2-minute-series.md"
+    },
+    {
+      "id": "F3",
+      "title": "Consumption classification (Telegram + local LLM)",
+      "phase": "3",
+      "status": "todo",
+      "spec": "docs/features/F3-classification.md"
+    },
+    {
+      "id": "F4",
+      "title": "Historical energy vs weather",
+      "phase": "4",
+      "status": "todo",
+      "spec": "docs/features/F4-weather-history.md"
+    },
+    {
+      "id": "F5",
+      "title": "Weather-based production forecast",
+      "phase": "4",
+      "status": "todo",
+      "spec": "docs/features/F5-forecast.md"
+    },
+    {
+      "id": "F6",
+      "title": "Telegram daily energy recap",
+      "phase": "3",
+      "status": "todo",
+      "spec": "docs/features/F6-telegram-recap.md"
+    },
+    {
+      "id": "F7",
+      "title": "Checkpoint-driven backfill",
+      "phase": "1",
+      "status": "done",
+      "spec": "docs/features/F7-backfill-checkpoints.md"
+    },
+    {
+      "id": "F8",
+      "title": "DB backup + Cubbit DS3",
+      "phase": "0+",
+      "status": "done",
+      "spec": "docs/features/F8-backup.md"
+    },
+    {
+      "id": "F9",
+      "title": "Battery dashboard (historical)",
+      "phase": "2",
+      "status": "done",
+      "spec": "docs/features/F9-battery-dashboard.md"
+    },
+    {
+      "id": "F10",
+      "title": "Telegram battery threshold alerts",
+      "phase": "3",
+      "status": "done",
+      "spec": "docs/features/F10-battery-alerts.md"
+    },
+    {
+      "id": "F11",
+      "title": "Config control panel",
+      "phase": "0+",
+      "status": "done",
+      "spec": "docs/features/F11-config-panel.md"
+    },
+    {
+      "id": "F12",
+      "title": "Customizable reports",
+      "phase": "5",
+      "status": "todo",
+      "spec": "docs/features/F12-reports.md"
+    },
+    {
+      "id": "F13",
+      "title": "Static analysis + GitHub CI",
+      "phase": "0+",
+      "status": "todo",
+      "spec": "docs/features/F13-ci-quality.md"
+    },
+    {
+      "id": "F14",
+      "title": "Published demo on GitHub Pages",
+      "phase": "0+",
+      "status": "todo",
+      "spec": "docs/features/F14-github-pages-demo.md"
+    },
+    {
+      "id": "F15",
+      "title": "Documentation site (guides + reference)",
+      "phase": "0+",
+      "status": "todo",
+      "spec": "docs/features/F15-docs-site.md"
+    },
+    {
+      "id": "F1-deferred",
+      "title": "Year preset, energy_totals table, billing-grade grid import",
+      "phase": "2",
+      "status": "deferred",
+      "spec": "docs/features/F1-aggregates.md"
+    }
+  ]
+}

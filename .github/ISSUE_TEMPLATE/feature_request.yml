@@ -1,0 +1,46 @@
+name: Feature request
+description: Suggest an improvement or new capability
+title: "[feat]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Check [GitHub feature issues](https://github.com/anrighi/solarman-tracking/issues?q=is%3Aissue+label%3Afeature) — your idea may already be on the backlog.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What problem does this solve? Who benefits?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How would you like it to work?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Related area
+      options:
+        - Sync / Solarman
+        - Dashboard
+        - Battery / alerts
+        - Telegram
+        - Weather / forecast
+        - Backup
+        - Settings / config
+        - Other
+
+  - type: checkboxes
+    id: willing
+    attributes:
+      label: Contribution
+      options:
+        - label: I am willing to open a pull request for this

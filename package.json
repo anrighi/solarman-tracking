@@ -1,5 +1,14 @@
 {
   "name": "solar-tracking",
+  "description": "Self-hosted Solarman PV monitoring with local dashboard, MySQL sync, and Telegram battery alerts",
+  "keywords": [
+    "solarman",
+    "solar",
+    "photovoltaic",
+    "energy-monitoring",
+    "self-hosted",
+    "telegram"
+  ],
   "private": true,
   "type": "module",
   "packageManager": "pnpm@9.15.9",
@@ -17,7 +26,8 @@
     "db:dump": "tsx --env-file=.env scripts/db-dump.ts",
     "db:restore": "tsx --env-file=.env scripts/db-restore.ts",
     "db:restore:test": "tsx --env-file=.env scripts/backup-restore-test.ts",
-    "backup:run": "tsx --env-file=.env scripts/backup-run.ts manual"
+    "backup:run": "tsx --env-file=.env scripts/backup-run.ts manual",
+    "sync:github-tasks": "bash scripts/sync-github-tasks.sh"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",

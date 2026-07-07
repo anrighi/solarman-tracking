@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Setup guide
+    url: https://github.com/anrighi/solarman-tracking/blob/main/docs/INIT.md
+    about: First-time installation and Solarman credentials
+  - name: Feature backlog
+    url: https://github.com/anrighi/solarman-tracking/issues?q=is%3Aissue+label%3Afeature
+    about: Labeled feature issues synced from docs/features
+  - name: Phase overview & ADR
+    url: https://github.com/anrighi/solarman-tracking/blob/main/docs/FEATURES.md
+    about: Phase completion, architecture decisions, handoff log

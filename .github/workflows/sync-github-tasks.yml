@@ -1,0 +1,39 @@
+name: Sync GitHub feature issues
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/github-tasks.manifest.json
+      - scripts/sync-github-tasks.sh
+      - scripts/render-github-issue-body.ts
+      - docs/features/**
+      - docs/FEATURES.md
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Sync manifest → GitHub Issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/sync-github-tasks.sh
