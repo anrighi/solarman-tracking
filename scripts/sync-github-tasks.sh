@@ -4,6 +4,23 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 MANIFEST="$ROOT/scripts/github-tasks.manifest.json"
 
+DRY_RUN=0
+FORCE_CLOSED=0
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) DRY_RUN=1 ;;
+    --force-closed) FORCE_CLOSED=1 ;;
+  esac
+done
+
+if [[ "${SYNC_DRY_RUN:-}" == "1" ]]; then
+  DRY_RUN=1
+fi
+
+if [[ "${SYNC_FORCE_CLOSED:-}" == "1" ]]; then
+  FORCE_CLOSED=1
+fi
+
 if ! command -v gh >/dev/null 2>&1; then
   echo "gh CLI is required. Install: https://cli.github.com/" >&2
   exit 1
@@ -16,6 +33,14 @@ fi
 
 is_ci() {
   [[ "${GITHUB_ACTIONS:-}" == "true" ]]
+}
+
+is_dry_run() {
+  [[ "$DRY_RUN" -eq 1 ]]
+}
+
+is_force_closed() {
+  [[ "$FORCE_CLOSED" -eq 1 ]]
 }
 
 has_gh_token() {
@@ -81,15 +106,33 @@ verify_repo_access() {
   echo "Authenticated as $login → $REPO" >&2
 }
 
+closed_issue_error() {
+  local issue_number="$1" id="$2"
+  echo "Issue #$issue_number ($id) is closed and will not be updated." >&2
+  echo "Reopen it manually or run: pnpm run sync:github-tasks:force" >&2
+  exit 1
+}
+
 REPO="$(resolve_repo)"
 PROJECT_TITLE="$(jq -r '.projectTitle' "$MANIFEST")"
 PROJECT_OWNER="@me"
 
 verify_repo_access
 
+if is_dry_run; then
+  echo "Dry run — no GitHub issues will be modified" >&2
+fi
+
 ensure_label() {
   local name="$1" color="$2" description="$3"
   local output=""
+  if is_dry_run; then
+    if gh label list --repo "$REPO" --json name --jq '.[].name' 2>/dev/null | grep -qx "$name"; then
+      return 0
+    fi
+    echo "[dry-run] missing label: $name (would create on sync)" >&2
+    return 0
+  fi
   if output="$(gh label create "$name" --repo "$REPO" --color "$color" --description "$description" 2>&1)"; then
     echo "Label created: $name" >&2
     return 0
@@ -137,6 +180,11 @@ find_issue_number() {
   if is_issue_number "$num"; then
     echo "$num"
   fi
+}
+
+get_issue_state() {
+  local issue_number="$1"
+  gh issue view "$issue_number" --repo "$REPO" --json state --jq .state 2>/dev/null || true
 }
 
 issue_body() {
@@ -188,6 +236,26 @@ set_issue_state() {
   gh issue reopen "$issue_number" --repo "$REPO" >/dev/null 2>&1 || true
 }
 
+handle_closed_issue() {
+  local issue_number="$1" id="$2" status="$3" full_title="$4"
+  if [[ "$(get_issue_state "$issue_number")" != "CLOSED" ]]; then
+    return 1
+  fi
+  if [[ "$status" == "done" ]] && ! is_force_closed; then
+    if is_dry_run; then
+      echo "[dry-run] skip closed #$issue_number — $full_title" >&2
+    else
+      echo "Skip closed #$issue_number — $full_title" >&2
+    fi
+    echo "$issue_number"
+    return 0
+  fi
+  if is_force_closed; then
+    return 1
+  fi
+  closed_issue_error "$issue_number" "$id"
+}
+
 sync_issue() {
   local id title phase status spec full_title body issue_number
   local -a labels
@@ -203,6 +271,21 @@ sync_issue() {
   fi
   body="$(issue_body "$id" "$phase" "$status" "$spec")"
   issue_number="$(find_issue_number "$id")"
+
+  if is_issue_number "$issue_number"; then
+    if handle_closed_issue "$issue_number" "$id" "$status" "$full_title"; then
+      return 0
+    fi
+  fi
+
+  if is_dry_run; then
+    if ! is_issue_number "$issue_number"; then
+      echo "[dry-run] would create — $full_title" >&2
+      return 0
+    fi
+    echo "[dry-run] would update #$issue_number — $full_title" >&2
+    return 0
+  fi
 
   if ! is_issue_number "$issue_number"; then
     issue_number="$(create_issue_cli "$full_title" "$body" "${labels[@]}")"
@@ -230,9 +313,18 @@ sync_project() {
   gh project item-add "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --url "$issue_url" >/dev/null 2>&1 || true
 }
 
-echo "Syncing feature issues to $REPO ..."
+if is_dry_run; then
+  echo "Validating feature issues for $REPO ..."
+else
+  echo "Syncing feature issues to $REPO ..."
+fi
+
 ISSUE_NUMBERS=()
 while IFS= read -r feature; do
+  if is_dry_run; then
+    sync_issue "$feature"
+    continue
+  fi
   num="$(sync_issue "$feature")"
   if ! is_issue_number "$num"; then
     echo "Aborting: invalid issue number for feature (got: $(printf '%q' "$num"))" >&2
@@ -240,6 +332,13 @@ while IFS= read -r feature; do
   fi
   ISSUE_NUMBERS+=("$num")
 done < <(jq -c '.features[]' "$MANIFEST")
+
+if is_dry_run; then
+  echo ""
+  echo "Dry run complete — auth and issue sync checks passed."
+  echo "Issues:  https://github.com/$REPO/issues?q=is%3Aissue+label%3Afeature"
+  exit 0
+fi
 
 PROJECT_NUMBER=""
 if is_ci; then

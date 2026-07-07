@@ -23,11 +23,13 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
   sync:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: ${{ github.event_name == 'pull_request' && 'read' || 'write' }}
     steps:
       - uses: actions/checkout@v6
 
@@ -43,7 +45,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Validate issue sync (dry run)
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/sync-github-tasks.sh --dry-run
+
       - name: Sync manifest → GitHub Issues
+        if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
         run: bash scripts/sync-github-tasks.sh
