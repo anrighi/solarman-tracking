@@ -155,14 +155,13 @@ create_issue_cli() {
   shift 2
   local -a labels=("$@")
   local -a args=(issue create --repo "$REPO" -t "$full_title" -b "$body")
-  local label url number
+  local label number
   for label in "${labels[@]}"; do
     args+=(-l "$label")
   done
-  url="$(gh "${args[@]}")"
-  number="${url##*/}"
+  number="$(gh "${args[@]}" --json number --jq .number)"
   if ! is_issue_number "$number"; then
-    echo "Failed to create issue (unexpected output): $url" >&2
+    echo "Failed to create issue (unexpected output): $number" >&2
     return 1
   fi
   echo "$number"
@@ -173,7 +172,7 @@ update_issue_cli() {
   shift 3
   local -a labels=("$@")
   local label
-  gh issue edit "$issue_number" --repo "$REPO" -t "$full_title" -b "$body"
+  gh issue edit "$issue_number" --repo "$REPO" -t "$full_title" -b "$body" >/dev/null
   for label in "${labels[@]}"; do
     gh issue edit "$issue_number" --repo "$REPO" --add-label "$label" >/dev/null 2>&1 || true
   done
@@ -235,7 +234,7 @@ ISSUE_NUMBERS=()
 while IFS= read -r feature; do
   num="$(sync_issue "$feature")"
   if ! is_issue_number "$num"; then
-    echo "Aborting: invalid issue number for feature" >&2
+    echo "Aborting: invalid issue number for feature (got: $(printf '%q' "$num"))" >&2
     exit 1
   fi
   ISSUE_NUMBERS+=("$num")
