@@ -155,13 +155,14 @@ create_issue_cli() {
   shift 2
   local -a labels=("$@")
   local -a args=(issue create --repo "$REPO" -t "$full_title" -b "$body")
-  local label number
+  local label url number
   for label in "${labels[@]}"; do
     args+=(-l "$label")
   done
-  number="$(gh "${args[@]}" --json number --jq .number)"
+  url="$(gh "${args[@]}" 2>/dev/null | tail -1)"
+  number="${url##*/}"
   if ! is_issue_number "$number"; then
-    echo "Failed to create issue (unexpected output): $number" >&2
+    echo "Failed to create issue (unexpected output): $url" >&2
     return 1
   fi
   echo "$number"
