@@ -27,7 +27,9 @@
     "db:restore": "tsx --env-file=.env scripts/db-restore.ts",
     "db:restore:test": "tsx --env-file=.env scripts/backup-restore-test.ts",
     "backup:run": "tsx --env-file=.env scripts/backup-run.ts manual",
-    "sync:github-tasks": "bash scripts/sync-github-tasks.sh"
+    "sync:github-tasks": "bash scripts/sync-github-tasks.sh",
+    "sync:github-tasks:dry-run": "bash scripts/sync-github-tasks.sh --dry-run",
+    "sync:github-tasks:force": "bash scripts/sync-github-tasks.sh --force-closed"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",

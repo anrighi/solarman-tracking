@@ -4,6 +4,16 @@ on:
   push:
     branches: [main]
     paths:
+      - .github/workflows/sync-github-tasks.yml
+      - scripts/github-tasks.manifest.json
+      - scripts/sync-github-tasks.sh
+      - scripts/render-github-issue-body.ts
+      - docs/features/**
+      - docs/FEATURES.md
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/sync-github-tasks.yml
       - scripts/github-tasks.manifest.json
       - scripts/sync-github-tasks.sh
       - scripts/render-github-issue-body.ts
@@ -13,19 +23,48 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
-  sync:
+  validate:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate issue sync (dry run)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/sync-github-tasks.sh --dry-run
+
+  sync:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: pnpm
