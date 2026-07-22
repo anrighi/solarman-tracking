@@ -16,6 +16,7 @@ import { Route as SettingsSyncRouteImport } from './routes/settings.sync'
 import { Route as SettingsNotificationsRouteImport } from './routes/settings.notifications'
 import { Route as SettingsDashboardRouteImport } from './routes/settings.dashboard'
 import { Route as SettingsBackupRouteImport } from './routes/settings.backup'
+import { Route as SettingsArchiveRouteImport } from './routes/settings.archive'
 import { Route as ApiWebhooksBatteryRouteImport } from './routes/api/webhooks/battery'
 
 const SettingsRoute = SettingsRouteImport.update({
@@ -53,6 +54,11 @@ const SettingsBackupRoute = SettingsBackupRouteImport.update({
   path: '/backup',
   getParentRoute: () => SettingsRoute,
 } as any)
+const SettingsArchiveRoute = SettingsArchiveRouteImport.update({
+  id: '/archive',
+  path: '/archive',
+  getParentRoute: () => SettingsRoute,
+} as any)
 const ApiWebhooksBatteryRoute = ApiWebhooksBatteryRouteImport.update({
   id: '/api/webhooks/battery',
   path: '/api/webhooks/battery',
@@ -62,6 +68,7 @@ const ApiWebhooksBatteryRoute = ApiWebhooksBatteryRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRouteWithChildren
+  '/settings/archive': typeof SettingsArchiveRoute
   '/settings/backup': typeof SettingsBackupRoute
   '/settings/dashboard': typeof SettingsDashboardRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
@@ -71,6 +78,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/settings/archive': typeof SettingsArchiveRoute
   '/settings/backup': typeof SettingsBackupRoute
   '/settings/dashboard': typeof SettingsDashboardRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
@@ -82,6 +90,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/settings': typeof SettingsRouteWithChildren
+  '/settings/archive': typeof SettingsArchiveRoute
   '/settings/backup': typeof SettingsBackupRoute
   '/settings/dashboard': typeof SettingsDashboardRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
@@ -94,6 +103,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/settings'
+    | '/settings/archive'
     | '/settings/backup'
     | '/settings/dashboard'
     | '/settings/notifications'
@@ -103,6 +113,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/settings/archive'
     | '/settings/backup'
     | '/settings/dashboard'
     | '/settings/notifications'
@@ -113,6 +124,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/settings'
+    | '/settings/archive'
     | '/settings/backup'
     | '/settings/dashboard'
     | '/settings/notifications'
@@ -178,6 +190,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsBackupRouteImport
       parentRoute: typeof SettingsRoute
     }
+    '/settings/archive': {
+      id: '/settings/archive'
+      path: '/archive'
+      fullPath: '/settings/archive'
+      preLoaderRoute: typeof SettingsArchiveRouteImport
+      parentRoute: typeof SettingsRoute
+    }
     '/api/webhooks/battery': {
       id: '/api/webhooks/battery'
       path: '/api/webhooks/battery'
@@ -189,6 +208,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface SettingsRouteChildren {
+  SettingsArchiveRoute: typeof SettingsArchiveRoute
   SettingsBackupRoute: typeof SettingsBackupRoute
   SettingsDashboardRoute: typeof SettingsDashboardRoute
   SettingsNotificationsRoute: typeof SettingsNotificationsRoute
@@ -197,6 +217,7 @@ interface SettingsRouteChildren {
 }
 
 const SettingsRouteChildren: SettingsRouteChildren = {
+  SettingsArchiveRoute: SettingsArchiveRoute,
   SettingsBackupRoute: SettingsBackupRoute,
   SettingsDashboardRoute: SettingsDashboardRoute,
   SettingsNotificationsRoute: SettingsNotificationsRoute,

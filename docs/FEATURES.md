@@ -49,11 +49,13 @@
 | F13 | Static analysis + GitHub CI | 0+ | not_started | [F13-ci-quality.md](features/F13-ci-quality.md) | [issues](https://github.com/anrighi/solarman-tracking/issues?q=%5BF13%5D) |
 | F14 | Published demo (GitHub Pages) | 0+ | not_started | [F14-github-pages-demo.md](features/F14-github-pages-demo.md) | [issues](https://github.com/anrighi/solarman-tracking/issues?q=%5BF14%5D) |
 | F15 | Documentation site (guides + reference) | 0+ | not_started | [F15-docs-site.md](features/F15-docs-site.md) | [issues](https://github.com/anrighi/solarman-tracking/issues?q=%5BF15%5D) |
+| F16 | S3 timeframe archive + calendar hydrate | 0+ | done | [F16-archive.md](features/F16-archive.md) | [issues](https://github.com/anrighi/solarman-tracking/issues?q=%5BF16%5D) |
 
 ## Architecture decisions (light ADR)
 
 | Date | Decision | Rationale | Rejected alternative |
 |------|----------|-----------|---------------------|
+| 2026-07-22 | Day JSONL partitions on Cubbit + calendar hydrate; keep F8 dumps | Timeframe history and local restore without Solarman; dumps remain full DR | Replace mysqldump with S3-only; serve live dashboard from S3 |
 | 2026-07-22 | Manifest-driven phase labels ([agent-repo-template](https://github.com/anrighi/agent-repo-template)) | Same sync pattern as the shared agent kit; phases editable without shell edits | Hardcoded phase-0…phase-5 in sync-github-tasks.sh |
 | 2026-06-01 | TanStack Start (RC) | Modern full-stack reactive platform | Next.js (complexity) |
 | 2026-06-01 | pnpm | Speed, monorepo support | npm / yarn |
@@ -76,7 +78,8 @@
 
 | Date | Agent | Phase | Done | Next step | Blocker |
 |------|-------|-------|------|-----------|---------|
-| 2026-07-22 | Cursor | 0+ | Adopt agent-repo-template sync (`phases[]` in manifest) | Merge adopt PR; pull future sync improvements from the template | None |
+| 2026-07-22 | Cursor | 0+ | F16 S3 archive + calendar hydrate | Merge PR #22 (Closes #21); enable archive in Settings when Cubbit keys set | None |
+| 2026-07-22 | Cursor | 0+ | Adopt agent-repo-template sync (`phases[]` in manifest) | Pull future sync improvements from the template | None |
 | 2026-07-07 | Cursor | docs | F15 documentation site spec (user + developer guides, VitePress, GitHub Pages) | F3/F6 or F15 after core phases | None |
 | 2026-07-07 | Cursor | docs | GitHub workflow rules, PR template, CI issue sync | Re-run sync for enriched issue bodies | None |
 | 2026-07-06 | Cursor | docs | F14 GitHub Pages demo backlog; discoverability docs | Implement F14; dashboard screenshots | — |

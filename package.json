@@ -32,6 +32,7 @@
     "sync:github-tasks:force": "bash scripts/sync-github-tasks.sh --force-closed"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1093.0",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-devtools": "latest",
     "@tanstack/react-router": "latest",

@@ -58,6 +58,13 @@ const backupSchema = z
   })
   .default({})
 
+const archiveSchema = z
+  .object({
+    enabled: z.boolean().default(false),
+    hotRetentionDays: z.number().int().min(7).max(3650).default(90),
+  })
+  .default({})
+
 export const appConfigSchema = z.object({
   sync: syncSchema,
   backfill: backfillSchema,
@@ -66,6 +73,7 @@ export const appConfigSchema = z.object({
   dashboard: dashboardSchema,
   chart: chartSchema,
   backup: backupSchema,
+  archive: archiveSchema,
 })
 
 export type AppConfig = z.infer<typeof appConfigSchema>

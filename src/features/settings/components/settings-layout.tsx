@@ -1,5 +1,5 @@
 import { Link, Outlet, useRouterState } from '@tanstack/react-router'
-import { Bell, Database, LayoutDashboard, RefreshCw } from 'lucide-react'
+import { Archive, Bell, Database, LayoutDashboard, RefreshCw } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 import { AppLogo } from '@/components/app-logo'
@@ -10,6 +10,7 @@ type SettingsNavItem = {
     | '/settings/notifications'
     | '/settings/dashboard'
     | '/settings/backup'
+    | '/settings/archive'
   label: string
   description: string
   icon: LucideIcon
@@ -39,6 +40,12 @@ const NAV_ITEMS: SettingsNavItem[] = [
     label: 'Backup',
     description: 'Policy, cronologia e ripristino',
     icon: Database,
+  },
+  {
+    to: '/settings/archive',
+    label: 'Archivio',
+    description: 'Partizioni giornaliere su S3 e ripristino',
+    icon: Archive,
   },
 ]
 
