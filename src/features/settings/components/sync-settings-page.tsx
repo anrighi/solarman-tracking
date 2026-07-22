@@ -1,4 +1,6 @@
 import type { AppConfig } from '@/lib/config/schema'
+import type { BackfillMonthSummary } from '@/features/backfill/types'
+import { BackfillCoveragePanel } from '@/features/backfill/components/backfill-coverage-panel'
 import { useSettingsForm } from '@/features/settings/hooks/use-settings-form'
 import {
   Section,
@@ -22,9 +24,13 @@ const SYNC_INTERVAL_OPTIONS = [
 
 type SyncSettingsPageProps = {
   config: AppConfig
+  backfillSummary: BackfillMonthSummary
 }
 
-export function SyncSettingsPage({ config: initialConfig }: SyncSettingsPageProps) {
+export function SyncSettingsPage({
+  config: initialConfig,
+  backfillSummary,
+}: SyncSettingsPageProps) {
   const form = useSettingsForm(initialConfig)
   const { config, setConfig } = form
 
@@ -88,6 +94,8 @@ export function SyncSettingsPage({ config: initialConfig }: SyncSettingsPageProp
         onExport={form.handleExport}
       />
       <SettingsMessage message={form.message} />
+
+      <BackfillCoveragePanel summary={backfillSummary} />
     </div>
   )
 }

@@ -2,6 +2,12 @@ import {
   computeEnergyTotals,
   type EnergyTotals,
 } from '@/features/energy/battery-stats'
+import {
+  assessDayCoverage,
+  COVERAGE_RATIO,
+  expectedSamplesForDay,
+  SAMPLES_PER_FULL_DAY,
+} from '@/features/energy/day-coverage'
 import { mapEnergySampleRow } from '@/features/energy/mappers'
 import { env } from '@/lib/env'
 import {
@@ -10,7 +16,6 @@ import {
   kwhToWh,
   mapDailyEnergyItems,
   SolarmanClient,
-  startOfUtcDay,
   utcDayBounds,
 } from '@/lib/solarman/client'
 import type { SolarmanClientConfig } from '@/lib/solarman/types'
@@ -25,8 +30,12 @@ import {
   syncSolarmanMinute,
 } from '@/server/jobs/sync-solarman'
 
-export const SAMPLES_PER_FULL_DAY = 288
-export const COVERAGE_RATIO = 0.8
+export {
+  assessDayCoverage,
+  COVERAGE_RATIO,
+  expectedSamplesForDay,
+  SAMPLES_PER_FULL_DAY,
+}
 export const DELTA_TOLERANCE_PCT = 5
 export const DEFAULT_COMPARE_DAYS = 7
 
@@ -70,30 +79,6 @@ export function buildDateRange(days: number, now = new Date()) {
   }
 
   return dates
-}
-
-export function expectedSamplesForDay(dateKey: string, now = new Date()) {
-  const todayKey = formatDay(now)
-
-  if (dateKey !== todayKey) {
-    return SAMPLES_PER_FULL_DAY
-  }
-
-  const start = startOfUtcDay(now)
-  const minutesSinceMidnight = (now.getTime() - start.getTime()) / 60_000
-
-  return Math.max(1, Math.ceil(minutesSinceMidnight / 5))
-}
-
-export function assessDayCoverage(dateKey: string, sampleCount: number, now = new Date()) {
-  const expectedSamples = expectedSamplesForDay(dateKey, now)
-  const minExpected = expectedSamples * COVERAGE_RATIO
-
-  return {
-    expectedSamples,
-    minExpected,
-    sufficient: sampleCount >= minExpected,
-  }
 }
 
 export function computeDeltaPct(minuteWh: number, apiWh: number) {

@@ -115,6 +115,13 @@
       "spec": "docs/features/F15-docs-site.md"
     },
     {
+      "id": "F17",
+      "title": "Backfill coverage on Sync settings",
+      "phase": "0+",
+      "status": "done",
+      "spec": "docs/features/F17-backfill-settings.md"
+    },
+    {
       "id": "F1-deferred",
       "title": "Year preset, energy_totals table, billing-grade grid import",
       "phase": "2",
