@@ -1,6 +1,50 @@
 {
   "repo": "anrighi/solarman-tracking",
   "projectTitle": "Solar Tracking Roadmap",
+  "phases": [
+    {
+      "id": "0",
+      "label": "phase-0",
+      "name": "Phase 0 — bootstrap",
+      "color": "0E8A16"
+    },
+    {
+      "id": "1",
+      "label": "phase-1",
+      "name": "Phase 1 — Solarman ingestion",
+      "color": "0E8A16"
+    },
+    {
+      "id": "2",
+      "label": "phase-2",
+      "name": "Phase 2 — dashboard",
+      "color": "0E8A16"
+    },
+    {
+      "id": "3",
+      "label": "phase-3",
+      "name": "Phase 3 — Telegram + AI",
+      "color": "FBCA04"
+    },
+    {
+      "id": "4",
+      "label": "phase-4",
+      "name": "Phase 4 — weather",
+      "color": "D93F0B"
+    },
+    {
+      "id": "5",
+      "label": "phase-5",
+      "name": "Phase 5 — reports",
+      "color": "D93F0B"
+    },
+    {
+      "id": "0+",
+      "label": "phase-0+",
+      "name": "Cross-cutting / infrastructure",
+      "color": "5319E7"
+    }
+  ],
   "features": [
     {
       "id": "F0",
@@ -113,6 +157,13 @@
       "phase": "0+",
       "status": "todo",
       "spec": "docs/features/F15-docs-site.md"
+    },
+    {
+      "id": "F16",
+      "title": "S3 timeframe archive + calendar hydrate",
+      "phase": "0+",
+      "status": "done",
+      "spec": "docs/features/F16-archive.md"
     },
     {
       "id": "F17",

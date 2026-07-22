@@ -15,6 +15,8 @@ describe('appConfigSchema', () => {
     ])
     expect(defaultAppConfig.backup.maxAgeHours).toBe(26)
     expect(defaultAppConfig.backup.alertOnMissing).toBe(true)
+    expect(defaultAppConfig.archive.enabled).toBe(false)
+    expect(defaultAppConfig.archive.hotRetentionDays).toBe(90)
   })
 
   it('rejects invalid interval', () => {

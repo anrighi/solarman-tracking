@@ -2,7 +2,7 @@
 
 > Last updated: 2026-07-22 | Active phase: 3 | Agent: Cursor
 
-**Collaboration:** [GitHub Issues](https://github.com/anrighi/solarman-tracking/issues?q=is%3Aissue+label%3Afeature) · branch `phase-<n>/<id>-<slug>` · PR with `Closes #N` · CI syncs manifest → issues on `main`. Workflow: `.cursor/rules/github-workflow.mdc`
+**Collaboration:** [GitHub Issues](https://github.com/anrighi/solarman-tracking/issues?q=is%3Aissue+label%3Afeature) · branch `phase-<n>/<id>-<slug>` · PR with `Closes #N` · CI syncs manifest → issues on `main`. Workflow: `.cursor/rules/github-workflow.mdc` · Agent kit: [agent-repo-template](https://github.com/anrighi/agent-repo-template)
 
 ## Global status
 
@@ -49,12 +49,15 @@
 | F13 | Static analysis + GitHub CI | 0+ | not_started | [F13-ci-quality.md](features/F13-ci-quality.md) | [issues](https://github.com/anrighi/solarman-tracking/issues?q=%5BF13%5D) |
 | F14 | Published demo (GitHub Pages) | 0+ | not_started | [F14-github-pages-demo.md](features/F14-github-pages-demo.md) | [issues](https://github.com/anrighi/solarman-tracking/issues?q=%5BF14%5D) |
 | F15 | Documentation site (guides + reference) | 0+ | not_started | [F15-docs-site.md](features/F15-docs-site.md) | [issues](https://github.com/anrighi/solarman-tracking/issues?q=%5BF15%5D) |
+| F16 | S3 timeframe archive + calendar hydrate | 0+ | done | [F16-archive.md](features/F16-archive.md) | [issues](https://github.com/anrighi/solarman-tracking/issues?q=%5BF16%5D) |
 | F17 | Backfill coverage on Sync settings | 0+ | done | [F17-backfill-settings.md](features/F17-backfill-settings.md) | [issues](https://github.com/anrighi/solarman-tracking/issues?q=%5BF17%5D) |
 
 ## Architecture decisions (light ADR)
 
 | Date | Decision | Rationale | Rejected alternative |
 |------|----------|-----------|---------------------|
+| 2026-07-22 | Day JSONL partitions on Cubbit + calendar hydrate; keep F8 dumps | Timeframe history and local restore without Solarman; dumps remain full DR | Replace mysqldump with S3-only; serve live dashboard from S3 |
+| 2026-07-22 | Manifest-driven phase labels ([agent-repo-template](https://github.com/anrighi/agent-repo-template)) | Same sync pattern as the shared agent kit; phases editable without shell edits | Hardcoded phase-0…phase-5 in sync-github-tasks.sh |
 | 2026-06-01 | TanStack Start (RC) | Modern full-stack reactive platform | Next.js (complexity) |
 | 2026-06-01 | pnpm | Speed, monorepo support | npm / yarn |
 | 2026-07-02 | mysql2 raw SQL | Simplicity for phase 1 | Drizzle (deferred) |
@@ -76,11 +79,11 @@
 
 | Date | Agent | Phase | Done | Next step | Blocker |
 |------|-------|-------|------|-----------|---------|
-| 2026-07-22 | Cursor | 0+ | F17 backfill coverage UI on Sync settings | Open PR with Closes #F17; verify recover on live Solarman days | None |
+| 2026-07-22 | Cursor | 0+ | F17 backfill coverage UI on Sync settings | Merge PR #24; verify recover on live Solarman days | None |
+| 2026-07-22 | Cursor | 0+ | F16 S3 archive + calendar hydrate | Enable archive in Settings when Cubbit keys set | None |
+| 2026-07-22 | Cursor | 0+ | Adopt agent-repo-template sync (`phases[]` in manifest) | Pull future sync improvements from the template | None |
 | 2026-07-07 | Cursor | docs | F15 documentation site spec (user + developer guides, VitePress, GitHub Pages) | F3/F6 or F15 after core phases | None |
 | 2026-07-07 | Cursor | docs | GitHub workflow rules, PR template, CI issue sync | Re-run sync for enriched issue bodies | None |
-| 2026-07-06 | Cursor | docs | F14 GitHub Pages demo backlog; discoverability docs | Implement F14; dashboard screenshots | — |
-| 2026-07-06 | Cursor | 2→3 | Phase 2 closed: F1 minute rollups, live sync validated, dedupe rule | F3 classification or F6 Telegram recap | None |
 
 ## Useful commands
 

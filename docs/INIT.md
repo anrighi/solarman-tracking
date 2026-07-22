@@ -78,6 +78,8 @@ See [`docs/BACKUP.md`](BACKUP.md) for Cubbit DS3 setup via rclone.
 pnpm run db:dump
 ```
 
+Optional day archive (export/hydrate without Solarman): [`docs/ARCHIVE.md`](ARCHIVE.md) and **Impostazioni → Archivio**.
+
 ## Local dev without Docker app container
 
 ```bash

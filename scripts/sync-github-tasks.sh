@@ -144,28 +144,50 @@ ensure_label() {
   return 1
 }
 
-ensure_label "feature" "1D76DB" "Tracked feature from docs/features"
-ensure_label "phase-0" "0E8A16" "Phase 0 — bootstrap"
-ensure_label "phase-1" "0E8A16" "Phase 1 — Solarman ingestion"
-ensure_label "phase-2" "0E8A16" "Phase 2 — dashboard"
-ensure_label "phase-3" "FBCA04" "Phase 3 — Telegram + AI"
-ensure_label "phase-4" "D93F0B" "Phase 4 — weather"
-ensure_label "phase-5" "D93F0B" "Phase 5 — reports"
-ensure_label "phase-0+" "5319E7" "Cross-cutting / infrastructure"
-ensure_label "status-deferred" "BFD4F2" "Deferred — revisit later"
+ensure_labels_from_manifest() {
+  ensure_label "feature" "1D76DB" "Tracked feature from docs/features"
+  ensure_label "status-deferred" "BFD4F2" "Deferred — revisit later"
+
+  local phase_json id label name color
+  while IFS= read -r phase_json; do
+    id="$(jq -r '.id' <<<"$phase_json")"
+    label="$(jq -r '.label // empty' <<<"$phase_json")"
+    name="$(jq -r '.name // empty' <<<"$phase_json")"
+    color="$(jq -r '.color // "5319E7"' <<<"$phase_json")"
+    if [[ -z "$label" ]]; then
+      if [[ "$id" == "0+" ]]; then
+        label="phase-0+"
+      else
+        label="phase-$id"
+      fi
+    fi
+    if [[ -z "$name" ]]; then
+      name="Phase $id"
+    fi
+    ensure_label "$label" "$color" "$name"
+  done < <(jq -c '.phases[]' "$MANIFEST")
+}
 
 phase_label() {
-  case "$1" in
-    0) echo "phase-0" ;;
-    1) echo "phase-1" ;;
-    2) echo "phase-2" ;;
-    3) echo "phase-3" ;;
-    4) echo "phase-4" ;;
-    5) echo "phase-5" ;;
-    0+) echo "phase-0+" ;;
-    *) echo "phase-0+" ;;
-  esac
+  local phase_id="$1"
+  local label
+  label="$(jq -r --arg id "$phase_id" '
+    (.phases // [])
+    | map(select(.id == $id))
+    | .[0].label // empty
+  ' "$MANIFEST")"
+  if [[ -n "$label" ]]; then
+    echo "$label"
+    return
+  fi
+  if [[ "$phase_id" == "0+" ]]; then
+    echo "phase-0+"
+    return
+  fi
+  echo "phase-$phase_id"
 }
+
+ensure_labels_from_manifest
 
 find_issue_number() {
   local id="$1"
