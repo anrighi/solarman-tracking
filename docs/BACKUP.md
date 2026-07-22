@@ -115,3 +115,13 @@ pnpm run db:restore ./backups-restore/solar_tracking_YYYYMMDD_HHmm.sql.gz
 | MySQL data | `db:dump` / backup service |
 | App config | included in `app_config.json` export |
 | Env secrets | **not** in backups — keep `.env` safe separately |
+
+## Relation to day archive (F16)
+
+| Asset | Path | Purpose |
+|-------|------|---------|
+| MySQL dump + config | `backups/` | Full restore |
+| Day partitions | `archive/` | History sync / hydrate |
+
+See [docs/ARCHIVE.md](ARCHIVE.md). Day partitions do not replace this dump flow.
+

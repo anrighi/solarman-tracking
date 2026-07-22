@@ -115,6 +115,13 @@
       "spec": "docs/features/F15-docs-site.md"
     },
     {
+      "id": "F16",
+      "title": "S3 timeframe archive + calendar hydrate",
+      "phase": "0+",
+      "status": "done",
+      "spec": "docs/features/F16-archive.md"
+    },
+    {
       "id": "F1-deferred",
       "title": "Year preset, energy_totals table, billing-grade grid import",
       "phase": "2",

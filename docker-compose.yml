@@ -15,6 +15,7 @@ services:
       TZ: ${TZ:-Europe/Rome}
       CUBBIT_BUCKET: ${CUBBIT_BUCKET:-solar-tracking-app}
       CUBBIT_BACKUP_PREFIX: ${CUBBIT_BACKUP_PREFIX:-backups}
+      CUBBIT_ARCHIVE_PREFIX: ${CUBBIT_ARCHIVE_PREFIX:-archive}
       RCLONE_REMOTE: ${RCLONE_REMOTE:-cubbit:solar-tracking-app/backups}
       RCLONE_CONFIG_CUBBIT_TYPE: s3
       RCLONE_CONFIG_CUBBIT_PROVIDER: Cubbit
@@ -111,6 +112,7 @@ services:
       TZ: ${TZ:-Europe/Rome}
       CUBBIT_BUCKET: ${CUBBIT_BUCKET:-solar-tracking-app}
       CUBBIT_BACKUP_PREFIX: ${CUBBIT_BACKUP_PREFIX:-backups}
+      CUBBIT_ARCHIVE_PREFIX: ${CUBBIT_ARCHIVE_PREFIX:-archive}
       RCLONE_REMOTE: ${RCLONE_REMOTE:-cubbit:solar-tracking-app/backups}
       BACKUP_SCHEDULE_TZ: ${BACKUP_SCHEDULE_TZ:-Europe/Rome}
       BACKUP_SCHEDULE_HOUR: ${BACKUP_SCHEDULE_HOUR:-3}
