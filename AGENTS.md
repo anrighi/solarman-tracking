@@ -49,6 +49,8 @@ skills:
 
 ## Regole per gli agenti (Solar Tracking)
 
+Agent workflow aligned with [agent-repo-template](https://github.com/anrighi/agent-repo-template): phases live in `scripts/github-tasks.manifest.json` → `phases[]`; issue sync creates labels from that list.
+
 1. **Prima di codificare**: issue GitHub aperta (label `feature`), fase attiva in `docs/FEATURES.md`, spec in `docs/features/F*.md`, regole in `github-workflow.mdc`.
 2. **Durante il lavoro**: branch `phase-<n>/<id>-<slug>`; PR con `Closes #N`; aggiornare manifest e spec al completamento.
 3. **A fine sessione**: compilare una riga nel **Handoff log** con prossimo passo concreto.

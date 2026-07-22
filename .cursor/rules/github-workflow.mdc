@@ -20,6 +20,8 @@ Issues are the collaboration tracker. Specs stay in `docs/features/`. Status sou
 
 Format: `phase-<n>/<id>-<short-slug>`
 
+Phase labels and names come from `phases[]` in `scripts/github-tasks.manifest.json` (same pattern as [agent-repo-template](https://github.com/anrighi/agent-repo-template)). Branch prefixes:
+
 | Phase | Branch prefix | Example |
 |-------|---------------|---------|
 | 0 | `phase-0/` | `phase-0/f0-bootstrap` |
@@ -46,6 +48,7 @@ Format: `phase-<n>/<id>-<short-slug>`
 - **CI:** push to `main` runs `.github/workflows/sync-github-tasks.yml` when manifest or feature docs change
 - **Local:** `pnpm run sync:github-tasks` after editing `scripts/github-tasks.manifest.json`
 - Do not edit synced issue titles (`[Fx]` prefix); update manifest + spec instead
+- Phase labels are created from `phases[]` in the manifest — do not hardcode them in the sync script
 
 ## End of feature
 
