@@ -2,7 +2,7 @@
 
 > Last updated: 2026-07-07 | Active phase: 3 | Agent: Cursor
 
-**Collaboration:** [GitHub Issues](https://github.com/anrighi/solarman-tracking/issues?q=is%3Aissue+label%3Afeature) · branch `phase-<n>/<id>-<slug>` · PR with `Closes #N` · CI syncs manifest → issues on `main`. Workflow: `.cursor/rules/github-workflow.mdc`
+**Collaboration:** [GitHub Issues](https://github.com/anrighi/solarman-tracking/issues?q=is%3Aissue+label%3Afeature) · branch `phase-<n>/<id>-<slug>` · PR with `Closes #N` · CI syncs manifest → issues on `main`. Workflow: `.cursor/rules/github-workflow.mdc` · Agent kit: [agent-repo-template](https://github.com/anrighi/agent-repo-template)
 
 ## Global status
 
@@ -54,6 +54,7 @@
 
 | Date | Decision | Rationale | Rejected alternative |
 |------|----------|-----------|---------------------|
+| 2026-07-22 | Manifest-driven phase labels ([agent-repo-template](https://github.com/anrighi/agent-repo-template)) | Same sync pattern as the shared agent kit; phases editable without shell edits | Hardcoded phase-0…phase-5 in sync-github-tasks.sh |
 | 2026-06-01 | TanStack Start (RC) | Modern full-stack reactive platform | Next.js (complexity) |
 | 2026-06-01 | pnpm | Speed, monorepo support | npm / yarn |
 | 2026-07-02 | mysql2 raw SQL | Simplicity for phase 1 | Drizzle (deferred) |
@@ -75,6 +76,7 @@
 
 | Date | Agent | Phase | Done | Next step | Blocker |
 |------|-------|-------|------|-----------|---------|
+| 2026-07-22 | Cursor | 0+ | Adopt agent-repo-template sync (`phases[]` in manifest) | Merge adopt PR; pull future sync improvements from the template | None |
 | 2026-07-07 | Cursor | docs | F15 documentation site spec (user + developer guides, VitePress, GitHub Pages) | F3/F6 or F15 after core phases | None |
 | 2026-07-07 | Cursor | docs | GitHub workflow rules, PR template, CI issue sync | Re-run sync for enriched issue bodies | None |
 | 2026-07-06 | Cursor | docs | F14 GitHub Pages demo backlog; discoverability docs | Implement F14; dashboard screenshots | — |
